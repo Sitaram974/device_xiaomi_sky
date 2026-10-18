@@ -12,22 +12,21 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
 # Configure full_base_telephony.mk
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 
-# Inherit common Bliss configurations
-$(call inherit-product, vendor/lineage/config/common_full_phone.mk)
-
-$(call inherit-product, vendor/lineage/config/BoardConfigReservedSize.mk)
+# Inherit common Lineage / crDroid configurations
+$(call inherit-product-if-exists, vendor/lineage/config/common_full_phone.mk)
 
 # Inherit device configurations
 $(call inherit-product, $(DEVICE_PATH)/device.mk)
 
 # Inherit from the proprietary version
-$(call inherit-product, vendor/xiaomi/sky/sky-vendor.mk)
+$(call inherit-product-if-exists, vendor/xiaomi/sky/sky-vendor.mk)
 
 ## Device identifier
 PRODUCT_DEVICE := sky
 PRODUCT_NAME := lineage_sky
-PRODUCT_BRAND := Redmi
-PRODUCT_MODEL := 23076RN4BI
+PRODUCT_BRAND := Xiaomi
+PRODUCT_MODEL := Redmi 12 5G
 PRODUCT_MANUFACTURER := Xiaomi
 
-$(call inherit-product, $(DEVICE_PATH)/common.mk)
+# GMS
+PRODUCT_GMS_CLIENTID_BASE := android-xiaomi
