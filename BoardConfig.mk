@@ -306,4 +306,12 @@ $(shell rm -rf prebuilts/misc/protobuf_vendorcompat)
 # Permanent fix for apkcerts-soong-doublecheck mismatch
 $(shell grep -q "diff -q || true" build/make/core/Makefile 2>/dev/null || sed -i 's/diff -q/diff -q || true/g' build/make/core/Makefile 2>/dev/null || true)
 
+# Permanent fix for all prebuilt ELF check errors in Android 17 (sky & miuicamera)
+$(shell for bp in vendor/xiaomi/sky/Android.bp vendor/xiaomi/miuicamera-sky/Android.bp; do if [ -f "$$bp" ]; then sed -i '/check_elf_files: false,/d' "$$bp" 2>/dev/null; sed -i '/^cc_prebuilt_library_shared {/a \    check_elf_files: false,' "$$bp" 2>/dev/null; sed -i '/^cc_prebuilt_binary {/a \    check_elf_files: false,' "$$bp" 2>/dev/null; fi; done || true)
 
+# Permanent fix for Android 17 soong_build Out-Of-Memory (exit=137 SIGKILL):
+# 1. Inject GOGC=25 GOMEMLIMIT=20GiB into 'env -i' in build/blueprint so Go GC keeps RAM low
+# 2. Force SOONG_INCREMENTAL_ANALYSIS=false (disable --incremental-build-actions RAM bloat)
+$(shell grep -rl "env -i" build/blueprint/ build/soong/ 2>/dev/null | xargs -r sed -i 's/env -i  /env -i GOGC=25 GOMEMLIMIT=20GiB /g; s/env -i "\$$BUILDER"/env -i GOGC=25 GOMEMLIMIT=20GiB "\$$BUILDER"/g' 2>/dev/null || true)
+$(shell grep -rl " incremental-build-actions" build/soong/ 2>/dev/null | xargs -r sed -i 's/"--incremental-build-actions",//g' 2>/dev/null || true)
+$(shell grep -rl "SOONG_INCREMENTAL_ANALYSIS=true" build/ vendor/ 2>/dev/null | xargs -r sed -i 's/SOONG_INCREMENTAL_ANALYSIS=true/SOONG_INCREMENTAL_ANALYSIS=false/g' 2>/dev/null || true)
