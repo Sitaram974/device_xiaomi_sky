@@ -306,5 +306,4 @@ $(shell rm -rf prebuilts/misc/protobuf_vendorcompat)
 # Permanent fix for apkcerts-soong-doublecheck mismatch
 $(shell grep -q "diff -q || true" build/make/core/Makefile 2>/dev/null || sed -i 's/diff -q/diff -q || true/g' build/make/core/Makefile 2>/dev/null || true)
 
-# Permanent fix for all prebuilt ELF check errors in Android 17 (sky & miuicamera)
-$(shell for bp in vendor/xiaomi/sky/Android.bp vendor/xiaomi/miuicamera-sky/Android.bp; do if [ -f "$$bp" ]; then sed -i '/check_elf_files: false,/d' "$$bp" 2>/dev/null; sed -i '/^cc_prebuilt_library_shared {/a \    check_elf_files: false,' "$$bp" 2>/dev/null; sed -i '/^cc_prebuilt_binary {/a \    check_elf_files: false,' "$$bp" 2>/dev/null; fi; done || true)
+
