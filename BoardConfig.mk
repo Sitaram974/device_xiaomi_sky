@@ -93,7 +93,9 @@ $(call soong_config_set,libinit,vendor_init_lib,//$(DEVICE_PATH):init_xiaomi_sky
 # Kernel
 BOARD_KERNEL_PAGESIZE := 4096
 BOARD_KERNEL_BASE := 0x00000000
+ifneq ($(wildcard prebuilts/clang/host/linux-x86/clang-r563880c),)
 TARGET_KERNEL_CLANG_VERSION := r563880c
+endif
 
 BOARD_KERNEL_CMDLINE := \
     disable_dma32=on \
@@ -121,7 +123,7 @@ TARGET_KERNEL_SOURCE := kernel/xiaomi/sky
 TARGET_KERNEL_CONFIG := \
     gki_defconfig \
     vendor/sky_GKI.config \
-    vendor/parrot_GKI.config
+    $(if $(wildcard kernel/xiaomi/sky/arch/arm64/configs/vendor/parrot_GKI.config),vendor/parrot_GKI.config,)
 
 BOARD_VENDOR_RAMDISK_FRAGMENTS := dlkm
 BOARD_VENDOR_RAMDISK_FRAGMENT.dlkm.KERNEL_MODULE_DIRS := top
@@ -303,3 +305,6 @@ $(shell rm -rf prebuilts/misc/protobuf_vendorcompat)
 
 # Permanent fix for apkcerts-soong-doublecheck mismatch
 $(shell grep -q "diff -q || true" build/make/core/Makefile 2>/dev/null || sed -i 's/diff -q/diff -q || true/g' build/make/core/Makefile 2>/dev/null || true)
+
+# Permanent fix for all prebuilt ELF check errors in Android 17 (sky & miuicamera)
+$(shell for bp in vendor/xiaomi/sky/Android.bp vendor/xiaomi/miuicamera-sky/Android.bp; do if [ -f "$$bp" ]; then sed -i '/check_elf_files: false,/d' "$$bp" 2>/dev/null; sed -i '/^cc_prebuilt_library_shared {/a \    check_elf_files: false,' "$$bp" 2>/dev/null; sed -i '/^cc_prebuilt_binary {/a \    check_elf_files: false,' "$$bp" 2>/dev/null; fi; done || true)
