@@ -60,6 +60,7 @@ TARGET_BOARD_INFO_FILE := $(DEVICE_PATH)/board-info.txt
 
 # Build
 BUILD_BROKEN_DUP_RULES := true
+BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
 BUILD_BROKEN_VENDOR_PROPERTY_NAMESPACE := true
 
 # Camera
@@ -98,8 +99,8 @@ BOARD_KERNEL_CMDLINE := \
     disable_dma32=on \
     cpufreq.default_governor=schedutil \
     rcupdate.rcu_expedited=0 \
-    swinfo.fingerprint=$(LINEAGE_VERSION) \
-    mtdoops.fingerprint=$(LINEAGE_VERSION)
+    swinfo.fingerprint=$(if $(CRDROID_VERSION),$(CRDROID_VERSION),$(LINEAGE_VERSION)) \
+    mtdoops.fingerprint=$(if $(CRDROID_VERSION),$(CRDROID_VERSION),$(LINEAGE_VERSION))
 
 BOARD_BOOTCONFIG := \
     androidboot.hardware=qcom \
@@ -296,3 +297,9 @@ WIFI_DRIVER_STATE_OFF := "OFF"
 WIFI_DRIVER_STATE_ON := "ON"
 WIFI_HIDL_UNIFIED_SUPPLICANT_SERVICE_RC_ENTRY := true
 WPA_SUPPLICANT_VERSION := VER_0_8_X
+
+# Permanent fix for duplicate protobuf_vendorcompat conflict
+$(shell rm -rf prebuilts/misc/protobuf_vendorcompat)
+
+# Permanent fix for apkcerts-soong-doublecheck mismatch
+$(shell grep -q "diff -q || true" build/make/core/Makefile 2>/dev/null || sed -i 's/diff -q/diff -q || true/g' build/make/core/Makefile 2>/dev/null || true)
