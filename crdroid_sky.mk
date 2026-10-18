@@ -12,8 +12,8 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
 # Configure full_base_telephony.mk
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 
-# Inherit common crDroid configurations
-$(call inherit-product, vendor/crdroid/config/common_full_phone.mk)
+# Inherit common crDroid configurations (crDroid keeps its vendor repo at vendor/lineage)
+$(call inherit-product, vendor/lineage/config/common_full_phone.mk)
 
 # Reserved size config (path differs between ROMs, pick whichever exists)
 ifneq ($(wildcard vendor/crdroid/config/BoardConfigReservedSize.mk),)
