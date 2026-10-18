@@ -5,4 +5,5 @@
 #
 
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/lineage_sky.mk
+    $(LOCAL_DIR)/lineage_sky.mk \
+    $(LOCAL_DIR)/crdroid_sky.mk
