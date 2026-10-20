@@ -300,6 +300,12 @@ WIFI_DRIVER_STATE_ON := "ON"
 WIFI_HIDL_UNIFIED_SUPPLICANT_SERVICE_RC_ENTRY := true
 WPA_SUPPLICANT_VERSION := VER_0_8_X
 
+# Permanent fix for duplicate hardware/xiaomi/dolby conflict with hardware/dolby
+$(shell rm -rf hardware/xiaomi/dolby)
+
+# Permanent fix to merge split firmware files automatically on Android 17 (even if vendorsetup.sh is skipped)
+$(shell if [ -f device/xiaomi/sky/prebuilts/tools/merge.sh ]; then bash device/xiaomi/sky/prebuilts/tools/merge.sh device/xiaomi/sky/prebuilts/firmware >/dev/null 2>&1 || true; fi)
+
 # Permanent fix for duplicate protobuf_vendorcompat conflict
 $(shell rm -rf prebuilts/misc/protobuf_vendorcompat)
 
