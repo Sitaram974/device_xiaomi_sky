@@ -303,6 +303,9 @@ WPA_SUPPLICANT_VERSION := VER_0_8_X
 # Permanent fix for duplicate hardware/xiaomi/dolby conflict with hardware/dolby
 $(shell rm -rf hardware/xiaomi/dolby)
 
+# Permanent fix for libjni_latinimegoogle.so packaging conflict between crDroid LatinIME and MindTheGapps
+$(shell python3 -c 'import pathlib,re; [p.write_text(re.sub(r"cc_prebuilt_library_shared\s*\{[^{}]*name:\s*\"libjni_latinimegoogle\"[^{}]*(?:\{[^{}]*\}[^{}]*(?:\{[^{}]*\}[^{}]*)*)*\}\s*","",p.read_text(),flags=re.S)) for p in map(pathlib.Path,["vendor/gapps/arm64/Android.bp","vendor/gapps/arm/Android.bp"]) if p.exists()]; [p.write_text(re.sub(r"\s*\\\s*\n\s*libjni_latinimegoogle\b","",p.read_text()).replace("libjni_latinimegoogle","")) for p in map(pathlib.Path,["vendor/gapps/arm64/arm64-vendor.mk","vendor/gapps/arm/arm-vendor.mk"]) if p.exists()]' 2>/dev/null || true)
+
 # Permanent fix to merge split firmware files automatically on Android 17 (even if vendorsetup.sh is skipped)
 $(shell if [ -f device/xiaomi/sky/prebuilts/tools/merge.sh ]; then bash device/xiaomi/sky/prebuilts/tools/merge.sh device/xiaomi/sky/prebuilts/firmware >/dev/null 2>&1 || true; fi)
 
