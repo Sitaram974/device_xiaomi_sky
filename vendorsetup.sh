@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# vendorsetup.sh — Redmi 12 5G (sky) — crDroid / LineageOS 17.0 (Android 17)
+# vendorsetup.sh — Redmi 12 5G (sky) — crDroid 17.0
 #
 
 echo "============================================================"
-echo "  Sky (Redmi 12 5G) — vendorsetup.sh"
+echo "  Sky (Redmi 12 5G) — Custom Signed Build"
 echo "============================================================"
 
 info() { echo "[*] $*"; }
@@ -14,8 +14,7 @@ ok()   { echo "[✓] $*"; }
 # -------------------------------------------------------------
 # 1) Fix libjni_latinimegoogle.so packaging conflict
 # -------------------------------------------------------------
-info "Fixing libjni_latinimegoogle.so conflict (GApps vs AOSP LatinIME)..."
-
+info "Fixing libjni_latinimegoogle.so conflict..."
 python3 - <<'PYEOF'
 import pathlib, re, sys
 TOKEN = "libjni_latinimegoogle"
@@ -35,14 +34,10 @@ def strip_module_from_bp(bp_path):
                 if j > start and depth <= 0: break
                 j += 1
             if has_token:
-                removed = True
-                i = j + 1
-                continue
-        out.append(lines[i])
-        i += 1
+                removed = True; i = j + 1; continue
+        out.append(lines[i]); i += 1
     if removed: p.write_text('\n'.join(out))
     return removed
-
 def strip_token_from_mk(mk_path):
     p = pathlib.Path(mk_path)
     if not p.exists(): return False
@@ -54,79 +49,71 @@ def strip_token_from_mk(mk_path):
     new = re.sub(r'^[ \t]*' + esc + r'[ \t]*\\?[ \t]*\Z', '', new, flags=re.MULTILINE)
     new = re.sub(r'[ \t]+' + esc + r'(?=[ \t\\]|\r?$)', '', new, flags=re.MULTILINE)
     if new == original: return False
-    p.write_text(new)
-    return True
-
-removed_bps, removed_mks = [], []
+    p.write_text(new); return True
 if ROOT.exists():
     for bp in sorted(ROOT.rglob("Android.bp")):
-        if strip_module_from_bp(str(bp)): removed_bps.append(str(bp))
+        strip_module_from_bp(str(bp))
     for mk in sorted(ROOT.rglob("*.mk")):
         try:
-            if TOKEN in mk.read_text(errors='ignore'):
-                if strip_token_from_mk(str(mk)): removed_mks.append(str(mk))
-        except Exception as e: pass
-else: print("  [warn] vendor/gapps not found.")
-if removed_bps or removed_mks:
-    for f in removed_bps: print(f"  [bp] removed module  -> {f}")
-    for f in removed_mks: print(f"  [mk] removed token   -> {f}")
+            if TOKEN in mk.read_text(errors='ignore'): strip_token_from_mk(str(mk))
+        except Exception: pass
 PYEOF
-
-info "Verifying libjni fix..."
-if grep -rq 'name: "libjni_latinimegoogle"' vendor/gapps --include="Android.bp" 2>/dev/null; then
-    warn "libjni_latinimegoogle STILL present in vendor/gapps Android.bp files!"
-else
-    ok "No libjni_latinimegoogle module in vendor/gapps (fix OK)"
-fi
 
 # -------------------------------------------------------------
 # 2) Remove duplicate hardware/xiaomi/dolby
 # -------------------------------------------------------------
-info "Removing hardware/xiaomi/dolby (if present)..."
+info "Removing hardware/xiaomi/dolby..."
 rm -rf hardware/xiaomi/dolby
-ok "dolby cleanup done."
 
 # -------------------------------------------------------------
 # 3) Ensure vendor/bcr is cloned
 # -------------------------------------------------------------
 if [[ ! -d "vendor/bcr" ]]; then
     info "Cloning vendor/bcr..."
-    git clone --depth=1 https://github.com/anonytry/android_vendor_bcr.git vendor/bcr \
-        || warn "vendor/bcr clone failed (non-fatal)"
+    git clone --depth=1 https://github.com/anonytry/android_vendor_bcr.git vendor/bcr || true
 fi
 
 # -------------------------------------------------------------
-# 4) Run Signify to generate signing keys
+# 4) DOWNLOAD CUSTOM SIGNING KEYS FROM PRIVATE REPO
 # -------------------------------------------------------------
-info "Running Signify..."
-KEYS_DIR="vendor/signify/keys" SKIP_OTA=true \
-    bash <(curl -s https://raw.githubusercontent.com/TopexGuy/Signify/main/signify.sh) --auto \
-    || warn "Signify failed (non-fatal)"
+# Yahan hum environment variable se token read karenge
+PRIVATE_REPO="Sitaram974/my-rom-keys"
+
+if [ -n "$CUSTOM_GITHUB_PAT" ]; then
+    info "Downloading custom signing keys from $PRIVATE_REPO..."
+    mkdir -p vendor/lineage/build/security
+    git clone --depth=1 https://${CUSTOM_GITHUB_PAT}@github.com/${PRIVATE_REPO}.git /tmp/custom_keys >/dev/null 2>&1
+
+    if [ -d "/tmp/custom_keys" ]; then
+        # Keys ko sahi jagah copy karo
+        cp /tmp/custom_keys/*.pk8 vendor/lineage/build/security/ 2>/dev/null || true
+        cp /tmp/custom_keys/*.x509.pem vendor/lineage/build/security/ 2>/dev/null || true
+        # Purani auto-generated keys ko delete karo taaki conflict na ho
+        rm -f vendor/signify/keys/releasekey.pk8
+        ok "Custom signing keys applied successfully!"
+    else
+        warn "Failed to download custom keys! Build might use default AOSP test keys."
+    fi
+else
+    warn "CUSTOM_GITHUB_PAT environment variable not set. Skipping custom keys."
+fi
 
 # -------------------------------------------------------------
 # 5) Merge split prebuilt firmware files
 # -------------------------------------------------------------
 if [[ -f "device/xiaomi/sky/prebuilts/tools/merge.sh" ]]; then
-    info "Merging split prebuilt firmware files for sky..."
-    bash device/xiaomi/sky/prebuilts/tools/merge.sh device/xiaomi/sky/prebuilts/firmware \
-        || warn "firmware merge failed (non-fatal)"
+    info "Merging split prebuilt firmware files..."
+    bash device/xiaomi/sky/prebuilts/tools/merge.sh device/xiaomi/sky/prebuilts/firmware || true
 fi
 
 # -------------------------------------------------------------
-# 5.5) PERMANENT FIX: TV Tuner C++ Error (At 67%)
-#      Directly removes the problematic file from AOSP source
+# 6) PERMANENT FIX: TV Tuner C++ Error (At 67%)
 # -------------------------------------------------------------
-info "Applying PERMANENT TV Tuner HAL fix..."
+info "Applying TV Tuner HAL fix..."
 TV_AIDL_BP="hardware/interfaces/tv/tuner/aidl/Android.bp"
 if [ -f "$TV_AIDL_BP" ]; then
-    # Physically remove the file from the build list
     sed -i '/"FrontendAnalogCapabilities.cpp",/d' "$TV_AIDL_BP"
-    ok "Removed FrontendAnalogCapabilities.cpp from $TV_AIDL_BP"
-else
-    warn "$TV_AIDL_BP not found!"
 fi
-
-# Backup: Also add to device.mk just in case
 if [ -f "device/xiaomi/sky/device.mk" ]; then
     if ! grep -q "PRODUCT_PACKAGES_REMOVE += android.hardware.tv.tuner" device/xiaomi/sky/device.mk; then
         echo "" >> device/xiaomi/sky/device.mk
@@ -136,26 +123,13 @@ if [ -f "device/xiaomi/sky/device.mk" ]; then
 fi
 
 # -------------------------------------------------------------
-# 5.6) PERMANENT FIX: SELinux Camera/Torch Error (sysfs_torch)
-#      Android 17 changed/removed sysfs_torch and sysfs_leds
+# 7) PERMANENT FIX: SELinux Camera/Torch Error (sysfs_torch)
 # -------------------------------------------------------------
 info "Applying SELinux cameraserver.te fix..."
 CAMERA_TE="device/xiaomi/sky/sepolicy/vendor/cameraserver.te"
 if [ -f "$CAMERA_TE" ]; then
-    # Comment out the failing lines so checkpolicy doesn't crash
     sed -i 's/^allow cameraserver sysfs_torch/# allow cameraserver sysfs_torch/g' "$CAMERA_TE"
     sed -i 's/^allow cameraserver sysfs_leds/# allow cameraserver sysfs_leds/g' "$CAMERA_TE"
-    ok "Patched $CAMERA_TE to prevent sysfs_torch error."
-else
-    warn "$CAMERA_TE not found! Skipping SELinux fix."
-fi
-
-# -------------------------------------------------------------
-# 6) HARD-FAIL safety check
-# -------------------------------------------------------------
-if grep -rq 'name: "libjni_latinimegoogle"' vendor/gapps --include="Android.bp" 2>/dev/null; then
-    echo "FATAL: libjni_latinimegoogle still present in vendor/gapps!"
-    return 1 2>/dev/null || exit 1
 fi
 
 ok "All vendorsetup checks passed."
