@@ -11,7 +11,8 @@
 #   3. Ensure vendor/bcr (Basic Call Recorder) is cloned
 #   4. Run Signify to generate signing keys
 #   5. Merge split prebuilt firmware files (dsp.img, modem.img)
-#   6. HARD-FAIL check: abort build if libjni fix did not apply
+#   6. Disable TV Tuner HAL (Fixes Android 17 compilation error at 67%)
+#   7. HARD-FAIL check: abort build if libjni fix did not apply
 #
 
 echo "============================================================"
@@ -158,6 +159,25 @@ if [[ -f "device/xiaomi/sky/prebuilts/tools/merge.sh" ]]; then
         || warn "firmware merge failed (non-fatal)"
 else
     info "firmware merge.sh not found, skipping."
+fi
+
+# -------------------------------------------------------------
+# 5.5) Disable TV Tuner HAL (Not needed for Redmi 12 5G)
+#      Fixes C++ compilation error at 67% (FrontendAnalogCapabilities.cpp)
+# -------------------------------------------------------------
+info "Disabling TV Tuner HAL build (not applicable for sky)..."
+if [ -f "device/xiaomi/sky/device.mk" ]; then
+    if ! grep -q "PRODUCT_PACKAGES_REMOVE += android.hardware.tv.tuner" device/xiaomi/sky/device.mk; then
+        echo "" >> device/xiaomi/sky/device.mk
+        echo "# Disable TV Tuner HAL (Fixes Android 17 build error)" >> device/xiaomi/sky/device.mk
+        echo "PRODUCT_PACKAGES_REMOVE += android.hardware.tv.tuner-V3-ndk" >> device/xiaomi/sky/device.mk
+        echo "PRODUCT_PACKAGES_REMOVE += android.hardware.tv.tuner-V3-ndk_platform" >> device/xiaomi/sky/device.mk
+        ok "TV Tuner HAL disabled in device.mk"
+    else
+        info "TV Tuner HAL already disabled in device.mk."
+    fi
+else
+    warn "device/xiaomi/sky/device.mk not found, skipping TV Tuner fix."
 fi
 
 # -------------------------------------------------------------
