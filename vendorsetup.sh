@@ -76,23 +76,23 @@ fi
 # -------------------------------------------------------------
 # 4) DOWNLOAD CUSTOM SIGNING KEYS FROM PRIVATE REPO
 # -------------------------------------------------------------
-# Yahan hum environment variable se token read karenge
 PRIVATE_REPO="Sitaram974/my-rom-keys"
 
 if [ -n "$CUSTOM_GITHUB_PAT" ]; then
     info "Downloading custom signing keys from $PRIVATE_REPO..."
     mkdir -p vendor/lineage/build/security
-    git clone --depth=1 https://${CUSTOM_GITHUB_PAT}@github.com/${PRIVATE_REPO}.git /tmp/custom_keys >/dev/null 2>&1
+    rm -rf /tmp/custom_keys  # Purana folder delete karo taaki conflict na ho
+    
+    # Yahan error hide nahi kiya gaya hai taaki pata chale kya dikkat hai
+    git clone --depth=1 https://${CUSTOM_GITHUB_PAT}@github.com/${PRIVATE_REPO}.git /tmp/custom_keys
 
     if [ -d "/tmp/custom_keys" ]; then
-        # Keys ko sahi jagah copy karo
         cp /tmp/custom_keys/*.pk8 vendor/lineage/build/security/ 2>/dev/null || true
         cp /tmp/custom_keys/*.x509.pem vendor/lineage/build/security/ 2>/dev/null || true
-        # Purani auto-generated keys ko delete karo taaki conflict na ho
         rm -f vendor/signify/keys/releasekey.pk8
         ok "Custom signing keys applied successfully!"
     else
-        warn "Failed to download custom keys! Build might use default AOSP test keys."
+        warn "Failed to download custom keys! Dekho upar git clone mein kya error aaya hai."
     fi
 else
     warn "CUSTOM_GITHUB_PAT environment variable not set. Skipping custom keys."
