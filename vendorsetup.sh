@@ -74,25 +74,30 @@ if [[ ! -d "vendor/bcr" ]]; then
 fi
 
 # -------------------------------------------------------------
-# 4) DOWNLOAD CUSTOM SIGNING KEYS FROM PRIVATE REPO
+# 4) DOWNLOAD CUSTOM SIGNING KEYS (100% FIXED)
 # -------------------------------------------------------------
 PRIVATE_REPO="Sitaram974/my-rom-keys"
 
 if [ -n "$CUSTOM_GITHUB_PAT" ]; then
-    info "Downloading custom signing keys from $PRIVATE_REPO..."
-    mkdir -p vendor/lineage/build/security
-    rm -rf /tmp/custom_keys  # Purana folder delete karo taaki conflict na ho
-    
-    # Yahan error hide nahi kiya gaya hai taaki pata chale kya dikkat hai
-    git clone --depth=1 https://${CUSTOM_GITHUB_PAT}@github.com/${PRIVATE_REPO}.git /tmp/custom_keys
+    info "Downloading custom signing keys..."
+    rm -rf /tmp/custom_keys
+    # oauth2: format use kiya hai taaki username prompt na aaye
+    git clone --depth=1 https://oauth2:${CUSTOM_GITHUB_PAT}@github.com/${PRIVATE_REPO}.git /tmp/custom_keys
 
     if [ -d "/tmp/custom_keys" ]; then
+        # 1. Lineage build folder ke liye
+        mkdir -p vendor/lineage/build/security
         cp /tmp/custom_keys/*.pk8 vendor/lineage/build/security/ 2>/dev/null || true
         cp /tmp/custom_keys/*.x509.pem vendor/lineage/build/security/ 2>/dev/null || true
-        rm -f vendor/signify/keys/releasekey.pk8
+        
+        # 2. Signify folder ke liye (Yahan error aa raha tha, ab overwrite hoga delete nahi)
+        mkdir -p vendor/signify/keys
+        cp /tmp/custom_keys/*.pk8 vendor/signify/keys/ 2>/dev/null || true
+        cp /tmp/custom_keys/*.x509.pem vendor/signify/keys/ 2>/dev/null || true
+        
         ok "Custom signing keys applied successfully!"
     else
-        warn "Failed to download custom keys! Dekho upar git clone mein kya error aaya hai."
+        warn "Failed to download custom keys! Check git error above."
     fi
 else
     warn "CUSTOM_GITHUB_PAT environment variable not set. Skipping custom keys."
