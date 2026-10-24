@@ -4,7 +4,7 @@
 #
 
 echo "============================================================"
-echo "  Sky (Redmi 12 5G) — Custom Signed Build"
+echo "  Sky (Redmi 12 5G) — Custom Signed & Certified Build"
 echo "============================================================"
 
 info() { echo "[*] $*"; }
@@ -91,7 +91,7 @@ if [ -n "$CUSTOM_GITHUB_PAT" ]; then
         cp /tmp/custom_keys/*.x509.pem vendor/signify/keys/ 2>/dev/null || true
         ok "Custom signing keys applied successfully!"
     else
-        warn "Failed to download custom keys!"
+        warn "Failed to download custom keys! Check git error above."
     fi
 else
     warn "CUSTOM_GITHUB_PAT not set. Skipping custom keys."
@@ -132,7 +132,7 @@ if [ -f "$CAMERA_TE" ]; then
 fi
 
 # -------------------------------------------------------------
-# 8) GOD-TIER MEGA FIX: Hardware, KeyMint, DRM, Hidden APIs
+# 8) GOD-TIER FIX: Hardware, KeyMint, DRM, Hidden APIs
 # -------------------------------------------------------------
 info "Applying GOD-TIER Mega Fixes..."
 
@@ -203,28 +203,46 @@ if ! grep -q "PRODUCT_PACKAGES += LatinIME" "$DEVICE_DIR/device.mk"; then
     echo "PRODUCT_PACKAGES += LatinIME" >> "$DEVICE_DIR/device.mk"
 fi
 
-# --- FIX 10: KEYMINT ATTESTATION & PLAY INTEGRITY (Pixel Spoof) ---
-# Spoof Pixel 8 Pro fingerprint to bypass KeyMint CANNOT_ATTEST_IDS
-echo "ro.build.fingerprint=google/husky/husky:14/AP1A.240305.019.A1/11445699:user/release-keys" >> "$DEVICE_DIR/system.prop"
-echo "ro.boot.verifiedbootstate=green" >> "$DEVICE_DIR/system.prop"
-echo "ro.boot.flash.locked=1" >> "$DEVICE_DIR/system.prop"
-echo "ro.secureboot.lockstate=locked" >> "$DEVICE_DIR/system.prop"
-
-# --- FIX 11: WIDEVINE DRM HAL FIX ---
+# --- FIX 10: WIDEVINE DRM HAL FIX ---
 echo "drm.service.enabled=true" >> "$DEVICE_DIR/system.prop"
 echo "ro.vendor.drm.enabled=true" >> "$DEVICE_DIR/system.prop"
 
-# --- FIX 12: HIDDEN API RESTRICTION BYPASS ---
+# --- FIX 11: HIDDEN API RESTRICTION BYPASS ---
 echo "persist.sys.hidden_api_policy=1" >> "$DEVICE_DIR/system.prop"
 echo "dalvik.vm.dex2oat-flags=--no-hidden-api-checks" >> "$DEVICE_DIR/system.prop"
 
-# --- FIX 13: PERFORMANCE HINT DISABLE (Power Hint Fail) ---
+# --- FIX 12: PERFORMANCE HINT DISABLE (Power Hint Fail) ---
 echo "ro.vendor.power_hint.support=false" >> "$DEVICE_DIR/system.prop"
 
-ok "GOD-TIER Mega Fixes applied successfully!"
+# -------------------------------------------------------------
+# 9) PLAY STORE CERTIFICATION (Spoof Pixel 8 Pro)
+# -------------------------------------------------------------
+info "Spoofing device to Google Pixel 8 Pro for Play Store Certification..."
+
+# In properties ko daalne se Play Store samjhega ki yeh ek original Google phone hai.
+cat << 'EOF' >> "$DEVICE_DIR/system.prop"
+# --- Play Integrity & Play Store Certification ---
+ro.product.brand=google
+ro.product.manufacturer=Google
+ro.product.model=Pixel 8 Pro
+ro.product.device=husky
+ro.product.name=husky
+ro.build.product=husky
+ro.build.fingerprint=google/husky/husky:14/AP1A.240305.019.A1/11445699:user/release-keys
+ro.build.tags=release-keys
+ro.build.type=user
+ro.debuggable=0
+ro.secure=1
+ro.boot.verifiedbootstate=green
+ro.boot.flash.locked=1
+ro.boot.vbmeta.device_state=locked
+ro.boot.veritymode=enforcing
+EOF
+
+ok "Play Store Certification properties applied!"
 
 # -------------------------------------------------------------
-# 9) HARD-FAIL safety check
+# 10) HARD-FAIL safety check
 # -------------------------------------------------------------
 if grep -rq 'name: "libjni_latinimegoogle"' vendor/gapps --include="Android.bp" 2>/dev/null; then
     echo "FATAL: libjni_latinimegoogle still present in vendor/gapps!"
