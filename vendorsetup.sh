@@ -215,25 +215,23 @@ echo "dalvik.vm.dex2oat-flags=--no-hidden-api-checks" >> "$DEVICE_DIR/system.pro
 echo "ro.vendor.power_hint.support=false" >> "$DEVICE_DIR/system.prop"
 
 # -------------------------------------------------------------
-# 9) PLAY STORE CERTIFICATION (Spoof Pixel 8 Pro)
+# 9) PLAY STORE CERTIFICATION (Xiaomi Spoof for Govt Apps)
 # -------------------------------------------------------------
-info "Spoofing device to Google Pixel 8 Pro for Play Store Certification..."
+info "Spoofing device to Xiaomi for Play Store Certification & Govt Apps..."
 
-# In properties ko daalne se Play Store samjhega ki yeh ek original Google phone hai.
-# Isse Play Integrity pass hogi aur banking apps block nahi hongi.
 cat << 'EOF' >> "$DEVICE_DIR/system.prop"
-# --- Play Integrity & Play Store Certification ---
-ro.product.brand=google
-ro.product.manufacturer=Google
-ro.product.model=Pixel 8 Pro
-ro.product.device=husky
-ro.product.name=husky
-ro.build.product=husky
-ro.build.id=AP1A.240305.019.A1
-ro.build.fingerprint=google/husky/husky:14/AP1A.240305.019.A1/11445699:user/release-keys
+# --- Play Integrity & Play Store Certification (Xiaomi Spoof) ---
+ro.product.brand=Xiaomi
+ro.product.manufacturer=Xiaomi
+ro.product.model=Redmi 12 5G
+ro.product.device=sky
+ro.product.name=sky
+ro.build.product=sky
+ro.build.id=UKQ1.230917.001
+ro.build.fingerprint=Xiaomi/alioth/alioth:13/TKQ1.221114.001/V816.0.5.0.TKHINXM:user/release-keys
 ro.build.version.security_patch=2024-03-05
 ro.vendor.build.security_patch=2024-03-05
-ro.product.first_api_level=34
+ro.product.first_api_level=33
 ro.build.tags=release-keys
 ro.build.type=user
 ro.debuggable=0
@@ -247,7 +245,94 @@ EOF
 ok "Play Store Certification properties applied!"
 
 # -------------------------------------------------------------
-# 10) HARD-FAIL safety check
+# 10) BATTERY LIFE & FAST CHARGING OPTIMIZATIONS
+# -------------------------------------------------------------
+info "Applying Battery Life & Fast Charging Tweaks..."
+
+# --- FAST CHARGING FIX ---
+cat << 'EOF' >> "$DEVICE_DIR/system.prop"
+# Fast Charging
+persist.vendor.charge.speedup=1
+ro.quick.charge=1
+persist.vendor.charger.fast=1
+EOF
+
+# Thermal throttling relax (Taaki charging speed na gire)
+if [ -f "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" ]; then
+    sed -i 's/"Battery": .*/"Battery": 45000,/' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
+fi
+
+# --- BATTERY LIFE IMPROVEMENT ---
+cat << 'EOF' >> "$DEVICE_DIR/system.prop"
+# Aggressive Doze Mode
+ro.vendor.qti.config.doze=1
+ro.vendor.qti.config.doze_aggressive=1
+persist.sys.doze.timeout=1
+persist.log.tag=W
+persist.sys.trace.enable=0
+ro.vendor.qti.sys.fw.bg_apps_limit=32
+ro.vendor.qti.sys.fw.empty_app_percent=50
+EOF
+
+# GApps Wakelocks Fix
+mkdir -p "$DEVICE_DIR/sysconfig"
+cat << 'EOF' > "$DEVICE_DIR/sysconfig/battery_tweaks.xml"
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <allow-in-power-save package="com.google.android.gms" />
+    <allow-in-power-save package="com.google.android.googlequicksearchbox" />
+    <allow-in-power-save package="com.google.android.apps.wellbeing" />
+</config>
+EOF
+
+ok "Battery Life & Fast Charging Tweaks applied!"
+
+# -------------------------------------------------------------
+# 11) AUDIO ENHANCEMENT & LOUDNESS BOOST (Deeply Powerful)
+# -------------------------------------------------------------
+info "Applying Audio Enhancement & Volume Boost..."
+
+cat << 'EOF' >> "$DEVICE_DIR/system.prop"
+# --- Audio Volume & Steps Boost ---
+# Default 15 steps hote hain, isko 100 karne se aawaz ko finely control kar sakte hain aur max volume bhi badh jata hai
+ro.config.media_vol_steps=100
+ro.config.alarm_vol_steps=100
+ro.config.notification_vol_steps=20
+ro.config.system_vol_steps=20
+ro.config.vc_call_vol_steps=14
+
+# --- Bypass Safe Volume Warning (Headphone aawaz nahi ghatayega) ---
+audio.safemedia.bypass=true
+ro.config.safemedia.bypass=true
+
+# --- Clear & Loud Sound (Qualcomm Hi-Fi & DSP Tweaks) ---
+persist.vendor.audio.hifi=true
+persist.vendor.audio.hac.enable=1
+persist.vendor.audio.ll_audio=false
+persist.vendor.audio.offload=true
+persist.vendor.audio.spatializer_enabled=true
+persist.vendor.audio.dolby.enable=0
+
+# Force Speaker to use max gain
+persist.vendor.audio.volume.support_dynamic_gain=true
+
+# --- Microphone Clarity (Calling & Recording) ---
+persist.vendor.audio.fluence.voicecall=true
+persist.vendor.audio.fluence.voicerec=true
+EOF
+
+# Update Mixer Paths for max speaker volume (if file exists)
+MIXER_PATH="$VENDOR_DIR/proprietary/vendor/etc/mixer_paths.xml"
+if [ -f "$MIXER_PATH" ]; then
+    # Increase RX volume for speakers
+    sed -i 's/<ctl name="RX[0-9] Digital Volume" value="[0-9]*"\/>/<ctl name="RX1 Digital Volume" value="90"\/>/g' "$MIXER_PATH" 2>/dev/null || true
+    sed -i 's/<ctl name="DEC[0-9] Volume" value="[0-9]*"\/>/<ctl name="DEC1 Volume" value="90"\/>/g' "$MIXER_PATH" 2>/dev/null || true
+fi
+
+ok "Audio Enhancement & Volume Boost applied!"
+
+# -------------------------------------------------------------
+# 12) HARD-FAIL safety check
 # -------------------------------------------------------------
 if grep -rq 'name: "libjni_latinimegoogle"' vendor/gapps --include="Android.bp" 2>/dev/null; then
     echo "FATAL: libjni_latinimegoogle still present in vendor/gapps!"
