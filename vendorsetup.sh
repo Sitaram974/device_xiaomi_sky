@@ -137,42 +137,45 @@ if [ -f "$CAMERA_TE" ]; then
 fi
 
 # -------------------------------------------------------------
-# 8) MEGA FIX: Camera, Audio, Network & UI Lag (From Log Analysis)
+# 8) ULTIMATE MEGA FIX: PC Logs Deep Analysis
 # -------------------------------------------------------------
-info "Applying Mega Fixes for Camera, Audio, Network & UI..."
+info "Applying ULTIMATE Mega Fixes from PC Logs..."
+
 DEVICE_DIR="device/xiaomi/sky"
 VENDOR_DIR="vendor/xiaomi/sky"
 
-# --- FIX 1: CAMERA CRASH (SELinux & Dolby) ---
+# --- FIX 1: CAMERA CRASH (Flashlight & Dolby) ---
+# Allow platform apps to find Xiaomi Camera PostProc Service
 mkdir -p $DEVICE_DIR/sepolicy/vendor
 cat << 'EOF' > $DEVICE_DIR/sepolicy/vendor/camera_fix.te
-# Allow platform apps to find Xiaomi Camera PostProc Service
 allow platform_app default_android_hwservice:hwservice_manager find;
 allow untrusted_app default_android_hwservice:hwservice_manager find;
 allow priv_app default_android_hwservice:hwservice_manager find;
 allow platform_app_36 default_android_hwservice:hwservice_manager find;
 EOF
 
-for file in "device/xiaomi/miuicamera-sky/Android.mk" "device/xiaomi/sky/device.mk"; do
+# Remove Dolby (crash kar raha tha)
+for file in "device/xiaomi/miuicamera-sky/Android.mk" "$DEVICE_DIR/device.mk"; do
     if [ -f "$file" ]; then
         sed -i 's/DolbyVision//g' "$file" 2>/dev/null || true
     fi
 done
+# Flashlight driver crash fix (Force generic LED path)
+echo "PRODUCT_PROPERTY_OVERRIDES += ro.vendor.camera.aux.packagelist=org.codeaurora.snapcam,com.android.camera" >> "$DEVICE_DIR/device.mk"
 
-# --- FIX 2: AUDIO HAL FAIL (Missing ACDB Calibration) ---
-mkdir -p $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP
-touch $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_Bluetooth_cal.acdb 2>/dev/null || true
-touch $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_General_cal.acdb 2>/dev/null || true
-touch $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_Global_cal.acdb 2>/dev/null || true
-touch $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_Handset_cal.acdb 2>/dev/null || true
-touch $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_Hdmi_cal.acdb 2>/dev/null || true
-touch $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_Headset_cal.acdb 2>/dev/null || true
-touch $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_Speaker_cal.acdb 2>/dev/null || true
+# --- FIX 2: AUDIO HAL FAIL (ACDB & EC Ref) ---
+# Create dummy ACDB calibration files
+mkdir -p "$VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP"
+for file in Bluetooth_cal General_cal Global_cal Handset_cal Hdmi_cal Headset_cal Speaker_cal; do
+    touch "$VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_${file}.acdb" 2>/dev/null || true
+done
+# Disable broken Echo Cancellation (EC Ref)
+echo "persist.vendor.audio.fluence.voicecall=false" >> "$DEVICE_DIR/system.prop"
+echo "persist.vendor.audio.fluence.speaker=false" >> "$DEVICE_DIR/system.prop"
+echo "persist.vendor.audio.fluence.voicerec=false" >> "$DEVICE_DIR/system.prop"
 
 # --- FIX 3: NETWORK DROP (RIL & IMS SELinux) ---
-mkdir -p $DEVICE_DIR/sepolicy/vendor
 cat << 'EOF' > $DEVICE_DIR/sepolicy/vendor/radio_fix.te
-# Allow RIL to connect to QMI sockets
 allow radio qmi_data_socket:dir search;
 allow radio qmi_data_socket:sock_file write;
 allow radio qmi_data_socket:unix_stream_socket connectto;
@@ -182,14 +185,42 @@ allow radio self:capability net_raw;
 EOF
 
 # --- FIX 4: UI LAG & BLUR CHOREOGRAPHER ---
-if [ -f "$DEVICE_DIR/device.mk" ]; then
-    if ! grep -q "ro.surface_flinger.supports_background_blur" $DEVICE_DIR/device.mk; then
-        echo "PRODUCT_PROPERTY_OVERRIDES += ro.surface_flinger.supports_background_blur=0" >> $DEVICE_DIR/device.mk
-        echo "PRODUCT_PROPERTY_OVERRIDES += ro.launcher.blur.appLaunch=0" >> $DEVICE_DIR/device.mk
-    fi
+if ! grep -q "ro.surface_flinger.supports_background_blur" $DEVICE_DIR/device.mk; then
+    echo "PRODUCT_PROPERTY_OVERRIDES += ro.surface_flinger.supports_background_blur=0" >> $DEVICE_DIR/device.mk
+    echo "PRODUCT_PROPERTY_OVERRIDES += ro.launcher.blur.appLaunch=0" >> $DEVICE_DIR/device.mk
 fi
 
-ok "Mega Fixes applied successfully!"
+# --- FIX 5: WIFI REGULATORY (Country Code 5GHz Fix) ---
+if [ -f "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" ]; then
+    sed -i 's/gEnableRegulatoryOverride=.*/gEnableRegulatoryOverride=1/g' "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" 2>/dev/null || true
+fi
+
+# --- FIX 6: BLUETOOTH MAC SELINUX ---
+cat << 'EOF' > "$DEVICE_DIR/sepolicy/vendor/bluetooth_fix.te"
+allow hal_bluetooth_default vendor_radio_prop:property_service set;
+allow hal_bluetooth_default vendor_radio_prop:file { read open getattr };
+allow untrusted_app vendor_radio_prop:file { read open getattr };
+EOF
+
+# --- FIX 7: TOUCHSCREEN FIRMWARE ---
+mkdir -p "$VENDOR_DIR/proprietary/vendor/firmware"
+find "$VENDOR_DIR" -name "focaltech_ts_fw_.bin" -exec cp {} "$VENDOR_DIR/proprietary/vendor/firmware/" \; 2>/dev/null || true
+
+# --- FIX 8: LOW MEMORY KILLER (ZRAM & LMK Tuning) ---
+# Force ZRAM and adjust LMK so apps don't die
+echo "ro.zram.mark_idle_delay_millis=60" >> "$DEVICE_DIR/system.prop"
+echo "ro.zram.first_wb_delay_millis=180" >> "$DEVICE_DIR/system.prop"
+echo "ro.zram.max_comp_streams=8" >> "$DEVICE_DIR/system.prop"
+echo "ro.lmk.low=1001" >> "$DEVICE_DIR/system.prop"
+echo "ro.lmk.medium=800" >> "$DEVICE_DIR/system.prop"
+echo "ro.lmk.critical=0" >> "$DEVICE_DIR/system.prop"
+
+# --- FIX 9: KEYBOARD CRASH (LatinIME) ---
+if ! grep -q "PRODUCT_PACKAGES += LatinIME" "$DEVICE_DIR/device.mk"; then
+    echo "PRODUCT_PACKAGES += LatinIME" >> "$DEVICE_DIR/device.mk"
+fi
+
+ok "ULTIMATE Mega Fixes applied successfully!"
 
 # -------------------------------------------------------------
 # 9) HARD-FAIL safety check
