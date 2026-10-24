@@ -84,22 +84,17 @@ if [ -n "$CUSTOM_GITHUB_PAT" ]; then
     git clone --depth=1 https://oauth2:${CUSTOM_GITHUB_PAT}@github.com/${PRIVATE_REPO}.git /tmp/custom_keys
 
     if [ -d "/tmp/custom_keys" ]; then
-        # 1. Lineage build folder ke liye
-        mkdir -p vendor/lineage/build/security
+        mkdir -p vendor/lineage/build/security vendor/signify/keys
         cp /tmp/custom_keys/*.pk8 vendor/lineage/build/security/ 2>/dev/null || true
         cp /tmp/custom_keys/*.x509.pem vendor/lineage/build/security/ 2>/dev/null || true
-        
-        # 2. Signify folder ke liye
-        mkdir -p vendor/signify/keys
         cp /tmp/custom_keys/*.pk8 vendor/signify/keys/ 2>/dev/null || true
         cp /tmp/custom_keys/*.x509.pem vendor/signify/keys/ 2>/dev/null || true
-        
         ok "Custom signing keys applied successfully!"
     else
-        warn "Failed to download custom keys! Check git error above."
+        warn "Failed to download custom keys!"
     fi
 else
-    warn "CUSTOM_GITHUB_PAT environment variable not set. Skipping custom keys."
+    warn "CUSTOM_GITHUB_PAT not set. Skipping custom keys."
 fi
 
 # -------------------------------------------------------------
@@ -137,15 +132,14 @@ if [ -f "$CAMERA_TE" ]; then
 fi
 
 # -------------------------------------------------------------
-# 8) ULTIMATE MEGA FIX: PC Logs Deep Analysis
+# 8) GOD-TIER MEGA FIX: Hardware, KeyMint, DRM, Hidden APIs
 # -------------------------------------------------------------
-info "Applying ULTIMATE Mega Fixes from PC Logs..."
+info "Applying GOD-TIER Mega Fixes..."
 
 DEVICE_DIR="device/xiaomi/sky"
 VENDOR_DIR="vendor/xiaomi/sky"
 
 # --- FIX 1: CAMERA CRASH (Flashlight & Dolby) ---
-# Allow platform apps to find Xiaomi Camera PostProc Service
 mkdir -p $DEVICE_DIR/sepolicy/vendor
 cat << 'EOF' > $DEVICE_DIR/sepolicy/vendor/camera_fix.te
 allow platform_app default_android_hwservice:hwservice_manager find;
@@ -153,26 +147,18 @@ allow untrusted_app default_android_hwservice:hwservice_manager find;
 allow priv_app default_android_hwservice:hwservice_manager find;
 allow platform_app_36 default_android_hwservice:hwservice_manager find;
 EOF
-
-# Remove Dolby (crash kar raha tha)
 for file in "device/xiaomi/miuicamera-sky/Android.mk" "$DEVICE_DIR/device.mk"; do
-    if [ -f "$file" ]; then
-        sed -i 's/DolbyVision//g' "$file" 2>/dev/null || true
-    fi
+    [ -f "$file" ] && sed -i 's/DolbyVision//g' "$file" 2>/dev/null || true
 done
-# Flashlight driver crash fix (Force generic LED path)
 echo "PRODUCT_PROPERTY_OVERRIDES += ro.vendor.camera.aux.packagelist=org.codeaurora.snapcam,com.android.camera" >> "$DEVICE_DIR/device.mk"
 
 # --- FIX 2: AUDIO HAL FAIL (ACDB & EC Ref) ---
-# Create dummy ACDB calibration files
 mkdir -p "$VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP"
 for file in Bluetooth_cal General_cal Global_cal Handset_cal Hdmi_cal Headset_cal Speaker_cal; do
     touch "$VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_${file}.acdb" 2>/dev/null || true
 done
-# Disable broken Echo Cancellation (EC Ref)
 echo "persist.vendor.audio.fluence.voicecall=false" >> "$DEVICE_DIR/system.prop"
 echo "persist.vendor.audio.fluence.speaker=false" >> "$DEVICE_DIR/system.prop"
-echo "persist.vendor.audio.fluence.voicerec=false" >> "$DEVICE_DIR/system.prop"
 
 # --- FIX 3: NETWORK DROP (RIL & IMS SELinux) ---
 cat << 'EOF' > $DEVICE_DIR/sepolicy/vendor/radio_fix.te
@@ -185,10 +171,8 @@ allow radio self:capability net_raw;
 EOF
 
 # --- FIX 4: UI LAG & BLUR CHOREOGRAPHER ---
-if ! grep -q "ro.surface_flinger.supports_background_blur" $DEVICE_DIR/device.mk; then
-    echo "PRODUCT_PROPERTY_OVERRIDES += ro.surface_flinger.supports_background_blur=0" >> $DEVICE_DIR/device.mk
-    echo "PRODUCT_PROPERTY_OVERRIDES += ro.launcher.blur.appLaunch=0" >> $DEVICE_DIR/device.mk
-fi
+echo "PRODUCT_PROPERTY_OVERRIDES += ro.surface_flinger.supports_background_blur=0" >> $DEVICE_DIR/device.mk
+echo "PRODUCT_PROPERTY_OVERRIDES += ro.launcher.blur.appLaunch=0" >> $DEVICE_DIR/device.mk
 
 # --- FIX 5: WIFI REGULATORY (Country Code 5GHz Fix) ---
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" ]; then
@@ -207,7 +191,6 @@ mkdir -p "$VENDOR_DIR/proprietary/vendor/firmware"
 find "$VENDOR_DIR" -name "focaltech_ts_fw_.bin" -exec cp {} "$VENDOR_DIR/proprietary/vendor/firmware/" \; 2>/dev/null || true
 
 # --- FIX 8: LOW MEMORY KILLER (ZRAM & LMK Tuning) ---
-# Force ZRAM and adjust LMK so apps don't die
 echo "ro.zram.mark_idle_delay_millis=60" >> "$DEVICE_DIR/system.prop"
 echo "ro.zram.first_wb_delay_millis=180" >> "$DEVICE_DIR/system.prop"
 echo "ro.zram.max_comp_streams=8" >> "$DEVICE_DIR/system.prop"
@@ -220,7 +203,25 @@ if ! grep -q "PRODUCT_PACKAGES += LatinIME" "$DEVICE_DIR/device.mk"; then
     echo "PRODUCT_PACKAGES += LatinIME" >> "$DEVICE_DIR/device.mk"
 fi
 
-ok "ULTIMATE Mega Fixes applied successfully!"
+# --- FIX 10: KEYMINT ATTESTATION & PLAY INTEGRITY (Pixel Spoof) ---
+# Spoof Pixel 8 Pro fingerprint to bypass KeyMint CANNOT_ATTEST_IDS
+echo "ro.build.fingerprint=google/husky/husky:14/AP1A.240305.019.A1/11445699:user/release-keys" >> "$DEVICE_DIR/system.prop"
+echo "ro.boot.verifiedbootstate=green" >> "$DEVICE_DIR/system.prop"
+echo "ro.boot.flash.locked=1" >> "$DEVICE_DIR/system.prop"
+echo "ro.secureboot.lockstate=locked" >> "$DEVICE_DIR/system.prop"
+
+# --- FIX 11: WIDEVINE DRM HAL FIX ---
+echo "drm.service.enabled=true" >> "$DEVICE_DIR/system.prop"
+echo "ro.vendor.drm.enabled=true" >> "$DEVICE_DIR/system.prop"
+
+# --- FIX 12: HIDDEN API RESTRICTION BYPASS ---
+echo "persist.sys.hidden_api_policy=1" >> "$DEVICE_DIR/system.prop"
+echo "dalvik.vm.dex2oat-flags=--no-hidden-api-checks" >> "$DEVICE_DIR/system.prop"
+
+# --- FIX 13: PERFORMANCE HINT DISABLE (Power Hint Fail) ---
+echo "ro.vendor.power_hint.support=false" >> "$DEVICE_DIR/system.prop"
+
+ok "GOD-TIER Mega Fixes applied successfully!"
 
 # -------------------------------------------------------------
 # 9) HARD-FAIL safety check
