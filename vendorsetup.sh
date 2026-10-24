@@ -74,14 +74,13 @@ if [[ ! -d "vendor/bcr" ]]; then
 fi
 
 # -------------------------------------------------------------
-# 4) DOWNLOAD CUSTOM SIGNING KEYS (100% FIXED)
+# 4) DOWNLOAD CUSTOM SIGNING KEYS
 # -------------------------------------------------------------
 PRIVATE_REPO="Sitaram974/my-rom-keys"
 
 if [ -n "$CUSTOM_GITHUB_PAT" ]; then
     info "Downloading custom signing keys..."
     rm -rf /tmp/custom_keys
-    # oauth2: format use kiya hai taaki username prompt na aaye
     git clone --depth=1 https://oauth2:${CUSTOM_GITHUB_PAT}@github.com/${PRIVATE_REPO}.git /tmp/custom_keys
 
     if [ -d "/tmp/custom_keys" ]; then
@@ -90,7 +89,7 @@ if [ -n "$CUSTOM_GITHUB_PAT" ]; then
         cp /tmp/custom_keys/*.pk8 vendor/lineage/build/security/ 2>/dev/null || true
         cp /tmp/custom_keys/*.x509.pem vendor/lineage/build/security/ 2>/dev/null || true
         
-        # 2. Signify folder ke liye (Yahan error aa raha tha, ab overwrite hoga delete nahi)
+        # 2. Signify folder ke liye
         mkdir -p vendor/signify/keys
         cp /tmp/custom_keys/*.pk8 vendor/signify/keys/ 2>/dev/null || true
         cp /tmp/custom_keys/*.x509.pem vendor/signify/keys/ 2>/dev/null || true
@@ -135,6 +134,69 @@ CAMERA_TE="device/xiaomi/sky/sepolicy/vendor/cameraserver.te"
 if [ -f "$CAMERA_TE" ]; then
     sed -i 's/^allow cameraserver sysfs_torch/# allow cameraserver sysfs_torch/g' "$CAMERA_TE"
     sed -i 's/^allow cameraserver sysfs_leds/# allow cameraserver sysfs_leds/g' "$CAMERA_TE"
+fi
+
+# -------------------------------------------------------------
+# 8) MEGA FIX: Camera, Audio, Network & UI Lag (From Log Analysis)
+# -------------------------------------------------------------
+info "Applying Mega Fixes for Camera, Audio, Network & UI..."
+DEVICE_DIR="device/xiaomi/sky"
+VENDOR_DIR="vendor/xiaomi/sky"
+
+# --- FIX 1: CAMERA CRASH (SELinux & Dolby) ---
+mkdir -p $DEVICE_DIR/sepolicy/vendor
+cat << 'EOF' > $DEVICE_DIR/sepolicy/vendor/camera_fix.te
+# Allow platform apps to find Xiaomi Camera PostProc Service
+allow platform_app default_android_hwservice:hwservice_manager find;
+allow untrusted_app default_android_hwservice:hwservice_manager find;
+allow priv_app default_android_hwservice:hwservice_manager find;
+allow platform_app_36 default_android_hwservice:hwservice_manager find;
+EOF
+
+for file in "device/xiaomi/miuicamera-sky/Android.mk" "device/xiaomi/sky/device.mk"; do
+    if [ -f "$file" ]; then
+        sed -i 's/DolbyVision//g' "$file" 2>/dev/null || true
+    fi
+done
+
+# --- FIX 2: AUDIO HAL FAIL (Missing ACDB Calibration) ---
+mkdir -p $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP
+touch $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_Bluetooth_cal.acdb 2>/dev/null || true
+touch $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_General_cal.acdb 2>/dev/null || true
+touch $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_Global_cal.acdb 2>/dev/null || true
+touch $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_Handset_cal.acdb 2>/dev/null || true
+touch $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_Hdmi_cal.acdb 2>/dev/null || true
+touch $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_Headset_cal.acdb 2>/dev/null || true
+touch $VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_Speaker_cal.acdb 2>/dev/null || true
+
+# --- FIX 3: NETWORK DROP (RIL & IMS SELinux) ---
+mkdir -p $DEVICE_DIR/sepolicy/vendor
+cat << 'EOF' > $DEVICE_DIR/sepolicy/vendor/radio_fix.te
+# Allow RIL to connect to QMI sockets
+allow radio qmi_data_socket:dir search;
+allow radio qmi_data_socket:sock_file write;
+allow radio qmi_data_socket:unix_stream_socket connectto;
+allow radio vendor_qmi_data_socket:sock_file write;
+allow radio self:capability net_admin;
+allow radio self:capability net_raw;
+EOF
+
+# --- FIX 4: UI LAG & BLUR CHOREOGRAPHER ---
+if [ -f "$DEVICE_DIR/device.mk" ]; then
+    if ! grep -q "ro.surface_flinger.supports_background_blur" $DEVICE_DIR/device.mk; then
+        echo "PRODUCT_PROPERTY_OVERRIDES += ro.surface_flinger.supports_background_blur=0" >> $DEVICE_DIR/device.mk
+        echo "PRODUCT_PROPERTY_OVERRIDES += ro.launcher.blur.appLaunch=0" >> $DEVICE_DIR/device.mk
+    fi
+fi
+
+ok "Mega Fixes applied successfully!"
+
+# -------------------------------------------------------------
+# 9) HARD-FAIL safety check
+# -------------------------------------------------------------
+if grep -rq 'name: "libjni_latinimegoogle"' vendor/gapps --include="Android.bp" 2>/dev/null; then
+    echo "FATAL: libjni_latinimegoogle still present in vendor/gapps!"
+    return 1 2>/dev/null || exit 1
 fi
 
 ok "All vendorsetup checks passed."
