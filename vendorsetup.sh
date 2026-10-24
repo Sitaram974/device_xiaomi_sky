@@ -60,6 +60,13 @@ if ROOT.exists():
 PYEOF
 
 # -------------------------------------------------------------
+# 1.5) FIX AOSP DISPLAYSERVICE DUPLICATE ERROR
+# -------------------------------------------------------------
+info "Fixing AOSP displayservice duplicate module error..."
+rm -f frameworks/native/services/displayservice/Android.bp
+ok "Displayservice duplicate removed."
+
+# -------------------------------------------------------------
 # 2) Remove duplicate hardware/xiaomi/dolby
 # -------------------------------------------------------------
 info "Removing hardware/xiaomi/dolby..."
@@ -307,11 +314,11 @@ ro.config.notification_vol_steps=20
 ro.config.system_vol_steps=20
 ro.config.vc_call_vol_steps=14
 
-# --- Bypass Safe Volume Warning (Headphone aawaz nahi ghatayega) ---
+# --- Bypass Safe Volume Warning ---
 audio.safemedia.bypass=true
 ro.config.safemedia.bypass=true
 
-# --- Clear & Loud Sound (Qualcomm Hi-Fi & DSP Tweaks) ---
+# --- Clear & Loud Sound ---
 persist.vendor.audio.hifi=true
 persist.vendor.audio.hac.enable=1
 persist.vendor.audio.ll_audio=false
