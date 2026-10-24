@@ -332,7 +332,35 @@ EOF
 ok "Audio Enhancement & Volume Boost applied!"
 
 # -------------------------------------------------------------
-# 12) HARD-FAIL safety check
+# 13) SECURITY HARDENING (Anti-Hack & Anti-Malware)
+# -------------------------------------------------------------
+info "Applying Security Hardening..."
+
+cat << 'EOF' >> "$DEVICE_DIR/system.prop"
+# --- Strict Security (Koi Hack na kar paye) ---
+ro.adb.secure=1
+ro.secure=1
+ro.debuggable=0
+service.adb.tcp.port=-1
+persist.adb.tcp.port=-1
+ro.force.encryption=1
+persist.sys.adb.root=0
+ro.sys.unknown_sources=0
+EOF
+
+# Ensure SELinux is strictly Enforcing
+if [ -f "$DEVICE_DIR/BoardConfig.mk" ]; then
+    sed -i 's/SELINUX_ENFORCING := false/SELINUX_ENFORCING := true/g' "$DEVICE_DIR/BoardConfig.mk" 2>/dev/null || true
+    sed -i 's/SELINUX_ENFORCING := permissive/SELINUX_ENFORCING := true/g' "$DEVICE_DIR/BoardConfig.mk" 2>/dev/null || true
+    if ! grep -q "SELINUX_ENFORCING := true" "$DEVICE_DIR/BoardConfig.mk"; then
+        echo "SELINUX_ENFORCING := true" >> "$DEVICE_DIR/BoardConfig.mk"
+    fi
+fi
+
+ok "Security Hardening applied! System is now Protected."
+
+# -------------------------------------------------------------
+# 14) HARD-FAIL safety check
 # -------------------------------------------------------------
 if grep -rq 'name: "libjni_latinimegoogle"' vendor/gapps --include="Android.bp" 2>/dev/null; then
     echo "FATAL: libjni_latinimegoogle still present in vendor/gapps!"
