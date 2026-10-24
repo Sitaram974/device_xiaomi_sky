@@ -220,6 +220,7 @@ echo "ro.vendor.power_hint.support=false" >> "$DEVICE_DIR/system.prop"
 info "Spoofing device to Google Pixel 8 Pro for Play Store Certification..."
 
 # In properties ko daalne se Play Store samjhega ki yeh ek original Google phone hai.
+# Isse Play Integrity pass hogi aur banking apps block nahi hongi.
 cat << 'EOF' >> "$DEVICE_DIR/system.prop"
 # --- Play Integrity & Play Store Certification ---
 ro.product.brand=google
@@ -228,7 +229,11 @@ ro.product.model=Pixel 8 Pro
 ro.product.device=husky
 ro.product.name=husky
 ro.build.product=husky
+ro.build.id=AP1A.240305.019.A1
 ro.build.fingerprint=google/husky/husky:14/AP1A.240305.019.A1/11445699:user/release-keys
+ro.build.version.security_patch=2024-03-05
+ro.vendor.build.security_patch=2024-03-05
+ro.product.first_api_level=34
 ro.build.tags=release-keys
 ro.build.type=user
 ro.debuggable=0
