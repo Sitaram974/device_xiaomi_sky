@@ -111,7 +111,7 @@ fi
 info "Applying TV Tuner HAL fix..."
 TV_AIDL_BP="hardware/interfaces/tv/tuner/aidl/Android.bp"
 if [ -f "$TV_AIDL_BP" ]; then
-    sed -i '/"FrontendAnalogCapabilities.cpp",/d' "$TV_AIDL_BP"
+    sed -i '/"FrontendAnalogCapabilities.cpp",/d' "$TV_AIDL_BP" || true
 fi
 if [ -f "device/xiaomi/sky/device.mk" ]; then
     if ! grep -q "PRODUCT_PACKAGES_REMOVE += android.hardware.tv.tuner" device/xiaomi/sky/device.mk; then
@@ -127,8 +127,8 @@ fi
 info "Applying SELinux cameraserver.te fix..."
 CAMERA_TE="device/xiaomi/sky/sepolicy/vendor/cameraserver.te"
 if [ -f "$CAMERA_TE" ]; then
-    sed -i 's/^allow cameraserver sysfs_torch/# allow cameraserver sysfs_torch/g' "$CAMERA_TE"
-    sed -i 's/^allow cameraserver sysfs_leds/# allow cameraserver sysfs_leds/g' "$CAMERA_TE"
+    sed -i 's/^allow cameraserver sysfs_torch/# allow cameraserver sysfs_torch/g' "$CAMERA_TE" || true
+    sed -i 's/^allow cameraserver sysfs_leds/# allow cameraserver sysfs_leds/g' "$CAMERA_TE" || true
 fi
 
 # -------------------------------------------------------------
@@ -148,7 +148,9 @@ allow priv_app default_android_hwservice:hwservice_manager find;
 allow platform_app_36 default_android_hwservice:hwservice_manager find;
 EOF
 for file in "device/xiaomi/miuicamera-sky/Android.mk" "$DEVICE_DIR/device.mk"; do
-    [ -f "$file" ] && sed -i 's/DolbyVision//g' "$file" 2>/dev/null || true
+    if [ -f "$file" ]; then
+        sed -i 's/DolbyVision//g' "$file" 2>/dev/null || true
+    fi
 done
 echo "PRODUCT_PROPERTY_OVERRIDES += ro.vendor.camera.aux.packagelist=org.codeaurora.snapcam,com.android.camera" >> "$DEVICE_DIR/device.mk"
 
@@ -285,6 +287,11 @@ cat << 'EOF' > "$DEVICE_DIR/sysconfig/battery_tweaks.xml"
 </config>
 EOF
 
+# Ensure XML is built
+if ! grep -q "battery_tweaks.xml" "$DEVICE_DIR/device.mk"; then
+    echo "PRODUCT_COPY_FILES += $DEVICE_DIR/sysconfig/battery_tweaks.xml:system/etc/sysconfig/battery_tweaks.xml" >> "$DEVICE_DIR/device.mk"
+fi
+
 ok "Battery Life & Fast Charging Tweaks applied!"
 
 # -------------------------------------------------------------
@@ -294,7 +301,6 @@ info "Applying Audio Enhancement & Volume Boost..."
 
 cat << 'EOF' >> "$DEVICE_DIR/system.prop"
 # --- Audio Volume & Steps Boost ---
-# Default 15 steps hote hain, isko 100 karne se aawaz ko finely control kar sakte hain aur max volume bhi badh jata hai
 ro.config.media_vol_steps=100
 ro.config.alarm_vol_steps=100
 ro.config.notification_vol_steps=20
@@ -311,23 +317,10 @@ persist.vendor.audio.hac.enable=1
 persist.vendor.audio.ll_audio=false
 persist.vendor.audio.offload=true
 persist.vendor.audio.spatializer_enabled=true
-persist.vendor.audio.dolby.enable=0
 
 # Force Speaker to use max gain
 persist.vendor.audio.volume.support_dynamic_gain=true
-
-# --- Microphone Clarity (Calling & Recording) ---
-persist.vendor.audio.fluence.voicecall=true
-persist.vendor.audio.fluence.voicerec=true
 EOF
-
-# Update Mixer Paths for max speaker volume (if file exists)
-MIXER_PATH="$VENDOR_DIR/proprietary/vendor/etc/mixer_paths.xml"
-if [ -f "$MIXER_PATH" ]; then
-    # Increase RX volume for speakers
-    sed -i 's/<ctl name="RX[0-9] Digital Volume" value="[0-9]*"\/>/<ctl name="RX1 Digital Volume" value="90"\/>/g' "$MIXER_PATH" 2>/dev/null || true
-    sed -i 's/<ctl name="DEC[0-9] Volume" value="[0-9]*"\/>/<ctl name="DEC1 Volume" value="90"\/>/g' "$MIXER_PATH" 2>/dev/null || true
-fi
 
 ok "Audio Enhancement & Volume Boost applied!"
 
