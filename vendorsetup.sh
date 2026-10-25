@@ -60,20 +60,20 @@ if ROOT.exists():
 PYEOF
 
 # -------------------------------------------------------------
-# 1.5) FIX AOSP DISPLAYSERVICE DUPLICATE ERROR
+# 2) FIX AOSP DISPLAYSERVICE DUPLICATE ERROR
 # -------------------------------------------------------------
 info "Fixing AOSP displayservice duplicate module error..."
 rm -f frameworks/native/services/displayservice/Android.bp
 ok "Displayservice duplicate removed."
 
 # -------------------------------------------------------------
-# 2) Remove duplicate hardware/xiaomi/dolby
+# 3) Remove duplicate hardware/xiaomi/dolby
 # -------------------------------------------------------------
 info "Removing hardware/xiaomi/dolby..."
 rm -rf hardware/xiaomi/dolby
 
 # -------------------------------------------------------------
-# 3) Ensure vendor/bcr is cloned
+# 4) Ensure vendor/bcr is cloned
 # -------------------------------------------------------------
 if [[ ! -d "vendor/bcr" ]]; then
     info "Cloning vendor/bcr..."
@@ -81,7 +81,7 @@ if [[ ! -d "vendor/bcr" ]]; then
 fi
 
 # -------------------------------------------------------------
-# 4) DOWNLOAD CUSTOM SIGNING KEYS
+# 5) DOWNLOAD CUSTOM SIGNING KEYS
 # -------------------------------------------------------------
 PRIVATE_REPO="Sitaram974/my-rom-keys"
 
@@ -105,7 +105,7 @@ else
 fi
 
 # -------------------------------------------------------------
-# 5) Merge split prebuilt firmware files
+# 6) Merge split prebuilt firmware files
 # -------------------------------------------------------------
 if [[ -f "device/xiaomi/sky/prebuilts/tools/merge.sh" ]]; then
     info "Merging split prebuilt firmware files..."
@@ -113,7 +113,7 @@ if [[ -f "device/xiaomi/sky/prebuilts/tools/merge.sh" ]]; then
 fi
 
 # -------------------------------------------------------------
-# 6) PERMANENT FIX: TV Tuner C++ Error (At 67%)
+# 7) PERMANENT FIX: TV Tuner C++ Error (At 67%)
 # -------------------------------------------------------------
 info "Applying TV Tuner HAL fix..."
 TV_AIDL_BP="hardware/interfaces/tv/tuner/aidl/Android.bp"
@@ -129,7 +129,7 @@ if [ -f "device/xiaomi/sky/device.mk" ]; then
 fi
 
 # -------------------------------------------------------------
-# 7) PERMANENT FIX: SELinux Camera/Torch Error (sysfs_torch)
+# 8) PERMANENT FIX: SELinux Camera/Torch Error (sysfs_torch)
 # -------------------------------------------------------------
 info "Applying SELinux cameraserver.te fix..."
 CAMERA_TE="device/xiaomi/sky/sepolicy/vendor/cameraserver.te"
@@ -139,7 +139,7 @@ if [ -f "$CAMERA_TE" ]; then
 fi
 
 # -------------------------------------------------------------
-# 8) GOD-TIER FIX: Hardware, KeyMint, DRM, Hidden APIs
+# 9) GOD-TIER FIX: Hardware, KeyMint, DRM, Hidden APIs
 # -------------------------------------------------------------
 info "Applying GOD-TIER Mega Fixes..."
 
@@ -224,7 +224,7 @@ echo "dalvik.vm.dex2oat-flags=--no-hidden-api-checks" >> "$DEVICE_DIR/system.pro
 echo "ro.vendor.power_hint.support=false" >> "$DEVICE_DIR/system.prop"
 
 # -------------------------------------------------------------
-# 9) PLAY STORE CERTIFICATION (Xiaomi Spoof for Govt Apps)
+# 10) PLAY STORE CERTIFICATION (Xiaomi Spoof for Govt Apps)
 # -------------------------------------------------------------
 info "Spoofing device to Xiaomi for Play Store Certification & Govt Apps..."
 
@@ -254,7 +254,7 @@ EOF
 ok "Play Store Certification properties applied!"
 
 # -------------------------------------------------------------
-# 10) BATTERY LIFE & FAST CHARGING OPTIMIZATIONS
+# 11) BATTERY LIFE & FAST CHARGING OPTIMIZATIONS
 # -------------------------------------------------------------
 info "Applying Battery Life & Fast Charging Tweaks..."
 
@@ -302,7 +302,7 @@ fi
 ok "Battery Life & Fast Charging Tweaks applied!"
 
 # -------------------------------------------------------------
-# 11) AUDIO ENHANCEMENT & LOUDNESS BOOST (Updated)
+# 12) AUDIO ENHANCEMENT & LOUDNESS BOOST (Updated)
 # -------------------------------------------------------------
 info "Applying Audio Enhancement & Volume Boost..."
 
@@ -332,7 +332,7 @@ EOF
 ok "Audio Enhancement & Volume Boost applied!"
 
 # -------------------------------------------------------------
-# 12) GAMING BOOST, 0.0x ANIMATION & HEATING CONTROL
+# 13) GAMING BOOST, 0.0x ANIMATION & HEATING CONTROL
 # -------------------------------------------------------------
 info "Applying Gaming, 0.0x Animation & Heating Tweaks..."
 
@@ -359,7 +359,6 @@ sys.sysctl.extra_free_kbytes=14400
 EOF
 
 # --- HEATING CONTROL (Overheat Fix) ---
-# Humne thermal limit 95 se ghatakar 65 kar di hai
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" ]; then
     sed -i 's/"cpu": [0-9]*/"cpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
     sed -i 's/"gpu": [0-9]*/"gpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
@@ -369,7 +368,7 @@ fi
 ok "Gaming Boost, 0.0x Animation & Heating Control applied!"
 
 # -------------------------------------------------------------
-# 13) SECURITY HARDENING (Anti-Hack & Anti-Malware)
+# 14) SECURITY HARDENING (Anti-Hack & Anti-Malware)
 # -------------------------------------------------------------
 info "Applying Security Hardening..."
 
@@ -397,7 +396,7 @@ fi
 ok "Security Hardening applied! System is now Protected."
 
 # -------------------------------------------------------------
-# 14) HARD-FAIL safety check
+# 15) HARD-FAIL safety check
 # -------------------------------------------------------------
 if grep -rq 'name: "libjni_latinimegoogle"' vendor/gapps --include="Android.bp" 2>/dev/null; then
     echo "FATAL: libjni_latinimegoogle still present in vendor/gapps!"
