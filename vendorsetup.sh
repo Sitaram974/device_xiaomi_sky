@@ -302,7 +302,7 @@ fi
 ok "Battery Life & Fast Charging Tweaks applied!"
 
 # -------------------------------------------------------------
-# 11) AUDIO ENHANCEMENT & LOUDNESS BOOST (Deeply Powerful)
+# 11) AUDIO ENHANCEMENT & LOUDNESS BOOST
 # -------------------------------------------------------------
 info "Applying Audio Enhancement & Volume Boost..."
 
@@ -330,6 +330,44 @@ persist.vendor.audio.volume.support_dynamic_gain=true
 EOF
 
 ok "Audio Enhancement & Volume Boost applied!"
+
+# -------------------------------------------------------------
+# 12) GAMING BOOST, 0.0x ANIMATION & HEATING CONTROL
+# -------------------------------------------------------------
+info "Applying Gaming, 0.0x Animation & Heating Tweaks..."
+
+cat << 'EOF' >> "$DEVICE_DIR/system.prop"
+# --- 0.0x Instant Animation (Fatafat App Open) ---
+persist.sys.window_animation_scale=0.0
+persist.sys.transition_animation_scale=0.0
+persist.sys.animator_duration_scale=0.0
+
+# --- High FPS & Gaming Boost ---
+debug.sf.hw=1
+debug.egl.hw=1
+debug.composition.type=gpu
+ro.surface_flinger.max_frame_buffer_acquired_buffers=3
+ro.surface_flinger.set_idle_timer_ms=0
+persist.vendor.qti.config.gaming_mode=1
+persist.vendor.qti.config.perf_mode=1
+
+# Disable touch delay during gaming
+persist.sys.input.touch_delay=0
+
+# Free up RAM for games
+sys.sysctl.extra_free_kbytes=14400
+EOF
+
+# --- HEATING CONTROL (Overheat Fix) ---
+# Humne thermal limit 95 se ghatakar 65 kar di hai
+# Isse phone garam nahi hoga, par performance smooth rahegi
+if [ -f "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" ]; then
+    sed -i 's/"cpu": [0-9]*/"cpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
+    sed -i 's/"gpu": [0-9]*/"gpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
+    sed -i 's/"Battery": [0-9]*/"Battery": 40000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
+fi
+
+ok "Gaming Boost, 0.0x Animation & Heating Control applied!"
 
 # -------------------------------------------------------------
 # 13) SECURITY HARDENING (Anti-Hack & Anti-Malware)
