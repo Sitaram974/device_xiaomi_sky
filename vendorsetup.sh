@@ -302,7 +302,7 @@ fi
 ok "Battery Life & Fast Charging Tweaks applied!"
 
 # -------------------------------------------------------------
-# 11) AUDIO ENHANCEMENT & LOUDNESS BOOST
+# 11) AUDIO ENHANCEMENT & LOUDNESS BOOST (Updated)
 # -------------------------------------------------------------
 info "Applying Audio Enhancement & Volume Boost..."
 
@@ -310,9 +310,9 @@ cat << 'EOF' >> "$DEVICE_DIR/system.prop"
 # --- Audio Volume & Steps Boost ---
 ro.config.media_vol_steps=100
 ro.config.alarm_vol_steps=100
-ro.config.notification_vol_steps=20
-ro.config.system_vol_steps=20
-ro.config.vc_call_vol_steps=14
+ro.config.notification_vol_steps=50
+ro.config.system_vol_steps=50
+ro.config.vc_call_vol_steps=30
 
 # --- Bypass Safe Volume Warning ---
 audio.safemedia.bypass=true
@@ -360,7 +360,6 @@ EOF
 
 # --- HEATING CONTROL (Overheat Fix) ---
 # Humne thermal limit 95 se ghatakar 65 kar di hai
-# Isse phone garam nahi hoga, par performance smooth rahegi
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" ]; then
     sed -i 's/"cpu": [0-9]*/"cpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
     sed -i 's/"gpu": [0-9]*/"gpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
