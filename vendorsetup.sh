@@ -199,9 +199,10 @@ add_prop "persist.sys.adb.root=0"
 add_prop "ro.sys.unknown_sources=0"
 add_prop "ro.force.app.security=true"
 add_prop "ro.hardware.keystore=on"
-
-# 🔥 NAYA ADD KIYA: Priv-App Permissions Enforcement (Strict Security)
 add_prop "ro.control_privapp_permissions=enforce"
+
+# NO-ROOT: Remove su binary completely
+add_mk "PRODUCT_PACKAGES_REMOVE += su"
 
 # Strict SELinux Enforcing + Memory Hardening (Scudo)
 if [ -f "$DEVICE_DIR/BoardConfig.mk" ]; then
@@ -224,7 +225,7 @@ add_prop "ro.product.name=sky_global"
 add_prop "ro.build.product=sky"
 add_prop "ro.build.id=UKQ1.230917.001"
 add_prop "ro.build.fingerprint=Xiaomi/sky_global/sky:14/UKQ1.230917.001/V816.0.2.0.UMHINXM:user/release-keys"
-add_prop "ro.build.version.security_patch=2025-01-05" # 🔥 Updated to latest for better security
+add_prop "ro.build.version.security_patch=2025-01-05"
 add_prop "ro.vendor.build.security_patch=2025-01-05"
 add_prop "ro.build.tags=release-keys"
 add_prop "ro.build.type=user"
@@ -291,7 +292,6 @@ add_prop "persist.sys.window_animation_scale=0.0"
 add_prop "persist.sys.transition_animation_scale=0.0"
 add_prop "persist.sys.animator_duration_scale=0.0"
 
-# 🔥 NAYA ADD KIYA: Force GPU Rendering & ART Speed Compiler
 add_prop "debug.sf.gpu_comp_mode=force-gpu"
 add_prop "dalvik.vm.dex2oat-filter=speed"
 add_prop "dalvik.vm.image-dex2oat-filter=speed"
@@ -312,8 +312,6 @@ add_prop "sys.sysctl.extra_free_kbytes=14400"
 add_prop "ro.zram.size=2147483648"
 add_prop "ro.lmk.use_minfree_levels=true"
 add_prop "ro.lmk.swap_free_low_percentage=20"
-
-# 🔥 NAYA ADD KIYA: Disable Low RAM & Energy Aware Sched (Taaki background apps na mare)
 add_prop "ro.config.low_ram=false"
 add_prop "ro.config.disable_energy_aware_sched=true"
 
