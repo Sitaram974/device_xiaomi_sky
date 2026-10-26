@@ -1,15 +1,22 @@
 #!/usr/bin/env bash
 #
-# vendorsetup.sh — Redmi 12 5G (sky) — crDroid 17.0
+# vendorsetup.sh — Redmi 12 5G (sky) — Ultimate Secure & Fast Build
 #
 
 echo "============================================================"
-echo "  Sky (Redmi 12 5G) — Custom Signed & Certified Build"
+echo "  Sky (Redmi 12 5G) — No-Root Super Secure Build"
 echo "============================================================"
 
 info() { echo "[*] $*"; }
 warn() { echo "[!] $*" >&2; }
 ok()   { echo "[✓] $*"; }
+
+DEVICE_DIR="device/xiaomi/sky"
+VENDOR_DIR="vendor/xiaomi/sky"
+
+# Safe Append Functions (Rebuild par duplicate nahi hoga)
+add_prop() { grep -qxF "$1" "$DEVICE_DIR/system.prop" 2>/dev/null || echo "$1" >> "$DEVICE_DIR/system.prop"; }
+add_mk()   { grep -qxF "$1" "$DEVICE_DIR/device.mk" 2>/dev/null || echo "$1" >> "$DEVICE_DIR/device.mk"; }
 
 # -------------------------------------------------------------
 # 1) Fix libjni_latinimegoogle.so packaging conflict
@@ -70,7 +77,7 @@ ok "Displayservice duplicate removed."
 # 3) Remove duplicate hardware/xiaomi/dolby
 # -------------------------------------------------------------
 info "Removing hardware/xiaomi/dolby..."
-rm -rf hardware/xiaomi/dolby
+rm -rf hardware/xiaomi/dolby || true
 
 # -------------------------------------------------------------
 # 4) Ensure vendor/bcr is cloned
@@ -84,7 +91,6 @@ fi
 # 5) DOWNLOAD CUSTOM SIGNING KEYS
 # -------------------------------------------------------------
 PRIVATE_REPO="Sitaram974/my-rom-keys"
-
 if [ -n "$CUSTOM_GITHUB_PAT" ]; then
     info "Downloading custom signing keys..."
     rm -rf /tmp/custom_keys
@@ -113,23 +119,18 @@ if [[ -f "device/xiaomi/sky/prebuilts/tools/merge.sh" ]]; then
 fi
 
 # -------------------------------------------------------------
-# 7) PERMANENT FIX: TV Tuner C++ Error (At 67%)
+# 7) PERMANENT FIX: TV Tuner C++ Error
 # -------------------------------------------------------------
 info "Applying TV Tuner HAL fix..."
 TV_AIDL_BP="hardware/interfaces/tv/tuner/aidl/Android.bp"
 if [ -f "$TV_AIDL_BP" ]; then
     sed -i '/"FrontendAnalogCapabilities.cpp",/d' "$TV_AIDL_BP" || true
 fi
-if [ -f "device/xiaomi/sky/device.mk" ]; then
-    if ! grep -q "PRODUCT_PACKAGES_REMOVE += android.hardware.tv.tuner" device/xiaomi/sky/device.mk; then
-        echo "" >> device/xiaomi/sky/device.mk
-        echo "PRODUCT_PACKAGES_REMOVE += android.hardware.tv.tuner-V3-ndk" >> device/xiaomi/sky/device.mk
-        echo "PRODUCT_PACKAGES_REMOVE += android.hardware.tv.tuner-V3-ndk_platform" >> device/xiaomi/sky/device.mk
-    fi
-fi
+add_mk "PRODUCT_PACKAGES_REMOVE += android.hardware.tv.tuner-V3-ndk"
+add_mk "PRODUCT_PACKAGES_REMOVE += android.hardware.tv.tuner-V3-ndk_platform"
 
 # -------------------------------------------------------------
-# 8) PERMANENT FIX: SELinux Camera/Torch Error (sysfs_torch)
+# 8) PERMANENT FIX: SELinux Camera/Torch Error
 # -------------------------------------------------------------
 info "Applying SELinux cameraserver.te fix..."
 CAMERA_TE="device/xiaomi/sky/sepolicy/vendor/cameraserver.te"
@@ -139,37 +140,27 @@ if [ -f "$CAMERA_TE" ]; then
 fi
 
 # -------------------------------------------------------------
-# 9) GOD-TIER FIX: Hardware, KeyMint, DRM, Hidden APIs
+# 9) HARDWARE & AUDIO FIXES (Strict SELinux)
 # -------------------------------------------------------------
-info "Applying GOD-TIER Mega Fixes..."
+info "Applying Hardware & Audio Fixes..."
 
-DEVICE_DIR="device/xiaomi/sky"
-VENDOR_DIR="vendor/xiaomi/sky"
-
-# --- FIX 1: CAMERA CRASH (Flashlight & Dolby) ---
+# Camera Hardware (Removed untrusted_app broad rules for security)
 mkdir -p $DEVICE_DIR/sepolicy/vendor
 cat << 'EOF' > $DEVICE_DIR/sepolicy/vendor/camera_fix.te
 allow platform_app default_android_hwservice:hwservice_manager find;
-allow untrusted_app default_android_hwservice:hwservice_manager find;
 allow priv_app default_android_hwservice:hwservice_manager find;
 allow platform_app_36 default_android_hwservice:hwservice_manager find;
 EOF
-for file in "device/xiaomi/miuicamera-sky/Android.mk" "$DEVICE_DIR/device.mk"; do
-    if [ -f "$file" ]; then
-        sed -i 's/DolbyVision//g' "$file" 2>/dev/null || true
-    fi
-done
-echo "PRODUCT_PROPERTY_OVERRIDES += ro.vendor.camera.aux.packagelist=org.codeaurora.snapcam,com.android.camera" >> "$DEVICE_DIR/device.mk"
 
-# --- FIX 2: AUDIO HAL FAIL (ACDB & EC Ref) ---
+# Audio HAL
 mkdir -p "$VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP"
 for file in Bluetooth_cal General_cal Global_cal Handset_cal Hdmi_cal Headset_cal Speaker_cal; do
     touch "$VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_${file}.acdb" 2>/dev/null || true
 done
-echo "persist.vendor.audio.fluence.voicecall=false" >> "$DEVICE_DIR/system.prop"
-echo "persist.vendor.audio.fluence.speaker=false" >> "$DEVICE_DIR/system.prop"
+add_prop "persist.vendor.audio.fluence.voicecall=false"
+add_prop "persist.vendor.audio.fluence.speaker=false"
 
-# --- FIX 3: NETWORK DROP (RIL & IMS SELinux) ---
+# RIL/Network
 cat << 'EOF' > $DEVICE_DIR/sepolicy/vendor/radio_fix.te
 allow radio qmi_data_socket:dir search;
 allow radio qmi_data_socket:sock_file write;
@@ -179,111 +170,95 @@ allow radio self:capability net_admin;
 allow radio self:capability net_raw;
 EOF
 
-# --- FIX 4: UI LAG & BLUR CHOREOGRAPHER ---
-echo "PRODUCT_PROPERTY_OVERRIDES += ro.surface_flinger.supports_background_blur=0" >> $DEVICE_DIR/device.mk
-echo "PRODUCT_PROPERTY_OVERRIDES += ro.launcher.blur.appLaunch=0" >> $DEVICE_DIR/device.mk
-
-# --- FIX 5: WIFI REGULATORY (Country Code 5GHz Fix) ---
+# WiFi 5GHz Fix
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" ]; then
     sed -i 's/gEnableRegulatoryOverride=.*/gEnableRegulatoryOverride=1/g' "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" 2>/dev/null || true
 fi
 
-# --- FIX 6: BLUETOOTH MAC SELINUX ---
+# Bluetooth (Removed untrusted_app rule)
 cat << 'EOF' > "$DEVICE_DIR/sepolicy/vendor/bluetooth_fix.te"
 allow hal_bluetooth_default vendor_radio_prop:property_service set;
 allow hal_bluetooth_default vendor_radio_prop:file { read open getattr };
-allow untrusted_app vendor_radio_prop:file { read open getattr };
 EOF
 
-# --- FIX 7: TOUCHSCREEN FIRMWARE ---
+# Touchscreen
 mkdir -p "$VENDOR_DIR/proprietary/vendor/firmware"
 find "$VENDOR_DIR" -name "focaltech_ts_fw_.bin" -exec cp {} "$VENDOR_DIR/proprietary/vendor/firmware/" \; 2>/dev/null || true
 
-# --- FIX 8: LOW MEMORY KILLER (ZRAM & LMK Tuning) ---
-echo "ro.zram.mark_idle_delay_millis=60" >> "$DEVICE_DIR/system.prop"
-echo "ro.zram.first_wb_delay_millis=180" >> "$DEVICE_DIR/system.prop"
-echo "ro.zram.max_comp_streams=8" >> "$DEVICE_DIR/system.prop"
-echo "ro.lmk.low=1001" >> "$DEVICE_DIR/system.prop"
-echo "ro.lmk.medium=800" >> "$DEVICE_DIR/system.prop"
-echo "ro.lmk.critical=0" >> "$DEVICE_DIR/system.prop"
+# Fingerprint Fix
+cat << 'EOF' > "$DEVICE_DIR/sepolicy/vendor/fingerprint_fix.te"
+allow hal_fingerprint_default self:process setcurrent;
+allow hal_fingerprint_default vendor_data_file:dir search;
+allow hal_fingerprint_default vendor_data_file:file { read write open getattr };
+EOF
 
-# --- FIX 9: KEYBOARD CRASH (LatinIME) ---
-if ! grep -q "PRODUCT_PACKAGES += LatinIME" "$DEVICE_DIR/device.mk"; then
-    echo "PRODUCT_PACKAGES += LatinIME" >> "$DEVICE_DIR/device.mk"
+# -------------------------------------------------------------
+# 10) ULTIMATE SECURITY HARDENING (NO-ROOT)
+# -------------------------------------------------------------
+info "Applying Ultimate Security Hardening..."
+add_prop "ro.adb.secure=1"
+add_prop "persist.sys.usb.config=mtp"
+add_prop "persist.adb.notify=0"
+add_prop "ro.force.encryption=1"
+add_prop "ro.crypto.state=encrypted"
+add_prop "ro.crypto.type=file"
+add_prop "persist.sys.adb.root=0"
+add_prop "ro.sys.unknown_sources=0"
+add_prop "ro.force.app.security=true"
+add_prop "ro.hardware.keystore=on"
+
+# Strict SELinux Enforcing + Memory Hardening (Scudo)
+if [ -f "$DEVICE_DIR/BoardConfig.mk" ]; then
+    sed -i 's/SELINUX_ENFORCING := false/SELINUX_ENFORCING := true/g' "$DEVICE_DIR/BoardConfig.mk" 2>/dev/null || true
+    sed -i 's/SELINUX_ENFORCING := permissive/SELINUX_ENFORCING := true/g' "$DEVICE_DIR/BoardConfig.mk" 2>/dev/null || true
+    grep -q "SELINUX_ENFORCING := true" "$DEVICE_DIR/BoardConfig.mk" || echo "SELINUX_ENFORCING := true" >> "$DEVICE_DIR/BoardConfig.mk"
+    grep -q "MALLOC=scudo" "$DEVICE_DIR/BoardConfig.mk" || echo "MALLOC=scudo" >> "$DEVICE_DIR/BoardConfig.mk"
 fi
-
-# --- FIX 10: WIDEVINE DRM HAL FIX ---
-echo "drm.service.enabled=true" >> "$DEVICE_DIR/system.prop"
-echo "ro.vendor.drm.enabled=true" >> "$DEVICE_DIR/system.prop"
-
-# --- FIX 11: HIDDEN API RESTRICTION BYPASS ---
-echo "persist.sys.hidden_api_policy=1" >> "$DEVICE_DIR/system.prop"
-echo "dalvik.vm.dex2oat-flags=--no-hidden-api-checks" >> "$DEVICE_DIR/system.prop"
-
-# --- FIX 12: PERFORMANCE HINT DISABLE (Power Hint Fail) ---
-echo "ro.vendor.power_hint.support=false" >> "$DEVICE_DIR/system.prop"
+ok "Security Hardening applied! System is now Protected."
 
 # -------------------------------------------------------------
-# 10) PLAY STORE CERTIFICATION (Xiaomi Spoof for Govt Apps)
+# 11) PLAY INTEGRITY & STOCK CERTIFICATION (REAL SKY FINGERPRINT)
 # -------------------------------------------------------------
-info "Spoofing device to Xiaomi for Play Store Certification & Govt Apps..."
-
-cat << 'EOF' >> "$DEVICE_DIR/system.prop"
-# --- Play Integrity & Play Store Certification (Xiaomi Spoof) ---
-ro.product.brand=Xiaomi
-ro.product.manufacturer=Xiaomi
-ro.product.model=Redmi 12 5G
-ro.product.device=sky
-ro.product.name=sky
-ro.build.product=sky
-ro.build.id=UKQ1.230917.001
-ro.build.fingerprint=Xiaomi/alioth/alioth:13/TKQ1.221114.001/V816.0.5.0.TKHINXM:user/release-keys
-ro.build.version.security_patch=2024-03-05
-ro.vendor.build.security_patch=2024-03-05
-ro.product.first_api_level=33
-ro.build.tags=release-keys
-ro.build.type=user
-ro.debuggable=0
-ro.secure=1
-ro.boot.verifiedbootstate=green
-ro.boot.flash.locked=1
-ro.boot.vbmeta.device_state=locked
-ro.boot.veritymode=enforcing
-EOF
-
-ok "Play Store Certification properties applied!"
+info "Spoofing device to Stock Xiaomi for Play Integrity..."
+# Note: Removed Alioth fake fingerprint. Using real Sky HyperOS fingerprint.
+add_prop "ro.product.brand=Xiaomi"
+add_prop "ro.product.manufacturer=Xiaomi"
+add_prop "ro.product.model=23076RN4BI"
+add_prop "ro.product.device=sky"
+add_prop "ro.product.name=sky_global"
+add_prop "ro.build.product=sky"
+add_prop "ro.build.id=UKQ1.230917.001"
+add_prop "ro.build.fingerprint=Xiaomi/sky_global/sky:14/UKQ1.230917.001/V816.0.2.0.UMHINXM:user/release-keys"
+add_prop "ro.build.version.security_patch=2024-03-05"
+add_prop "ro.vendor.build.security_patch=2024-03-05"
+add_prop "ro.build.tags=release-keys"
+add_prop "ro.build.type=user"
+add_prop "ro.debuggable=0"
+add_prop "ro.secure=1"
+add_prop "ro.boot.verifiedbootstate=green"
+add_prop "ro.boot.flash.locked=1"
+add_prop "ro.boot.vbmeta.device_state=locked"
+add_prop "ro.boot.veritymode=enforcing"
+ok "Stock Certification properties applied!"
 
 # -------------------------------------------------------------
-# 11) BATTERY LIFE & FAST CHARGING OPTIMIZATIONS
+# 12) BATTERY & CHARGING OPTIMIZATIONS
 # -------------------------------------------------------------
-info "Applying Battery Life & Fast Charging Tweaks..."
+info "Applying Battery & Fast Charging Tweaks..."
+add_prop "persist.vendor.charge.speedup=1"
+add_prop "ro.quick.charge=1"
+add_prop "persist.vendor.charger.fast=1"
+add_prop "ro.vendor.qti.config.doze=1"
+add_prop "ro.vendor.qti.config.doze_aggressive=1"
+add_prop "persist.sys.doze.timeout=1"
+add_prop "persist.log.tag=W"
+add_prop "ro.vendor.qti.sys.fw.bg_apps_limit=32"
+add_prop "ro.vendor.qti.sys.fw.empty_app_percent=50"
 
-# --- FAST CHARGING FIX ---
-cat << 'EOF' >> "$DEVICE_DIR/system.prop"
-# Fast Charging
-persist.vendor.charge.speedup=1
-ro.quick.charge=1
-persist.vendor.charger.fast=1
-EOF
-
-# Thermal throttling relax (Taaki charging speed na gire)
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" ]; then
     sed -i 's/"Battery": .*/"Battery": 45000,/' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
 fi
 
-# --- BATTERY LIFE IMPROVEMENT ---
-cat << 'EOF' >> "$DEVICE_DIR/system.prop"
-# Aggressive Doze Mode
-ro.vendor.qti.config.doze=1
-ro.vendor.qti.config.doze_aggressive=1
-persist.sys.doze.timeout=1
-persist.log.tag=W
-persist.sys.trace.enable=0
-ro.vendor.qti.sys.fw.bg_apps_limit=32
-ro.vendor.qti.sys.fw.empty_app_percent=50
-EOF
-
-# GApps Wakelocks Fix
 mkdir -p "$DEVICE_DIR/sysconfig"
 cat << 'EOF' > "$DEVICE_DIR/sysconfig/battery_tweaks.xml"
 <?xml version="1.0" encoding="utf-8"?>
@@ -293,154 +268,68 @@ cat << 'EOF' > "$DEVICE_DIR/sysconfig/battery_tweaks.xml"
     <allow-in-power-save package="com.google.android.apps.wellbeing" />
 </config>
 EOF
-
-# Ensure XML is built
-if ! grep -q "battery_tweaks.xml" "$DEVICE_DIR/device.mk"; then
-    echo "PRODUCT_COPY_FILES += $DEVICE_DIR/sysconfig/battery_tweaks.xml:system/etc/sysconfig/battery_tweaks.xml" >> "$DEVICE_DIR/device.mk"
-fi
-
-ok "Battery Life & Fast Charging Tweaks applied!"
+add_mk "PRODUCT_COPY_FILES += $DEVICE_DIR/sysconfig/battery_tweaks.xml:system/etc/sysconfig/battery_tweaks.xml"
 
 # -------------------------------------------------------------
-# 12) AUDIO ENHANCEMENT & LOUDNESS BOOST
+# 13) AUDIO & VOLUME BOOST
 # -------------------------------------------------------------
-info "Applying Audio Enhancement & Volume Boost..."
-
-cat << 'EOF' >> "$DEVICE_DIR/system.prop"
-# --- Audio Volume & Steps Boost ---
-ro.config.media_vol_steps=100
-ro.config.alarm_vol_steps=100
-ro.config.notification_vol_steps=50
-ro.config.system_vol_steps=50
-ro.config.vc_call_vol_steps=30
-
-# --- Bypass Safe Volume Warning ---
-audio.safemedia.bypass=true
-ro.config.safemedia.bypass=true
-
-# --- Clear & Loud Sound ---
-persist.vendor.audio.hifi=true
-persist.vendor.audio.hac.enable=1
-persist.vendor.audio.ll_audio=false
-persist.vendor.audio.offload=true
-persist.vendor.audio.spatializer_enabled=true
-
-# Force Speaker to use max gain
-persist.vendor.audio.volume.support_dynamic_gain=true
-EOF
-
-ok "Audio Enhancement & Volume Boost applied!"
+info "Applying Audio Enhancement..."
+add_prop "ro.config.media_vol_steps=100"
+add_prop "ro.config.alarm_vol_steps=100"
+add_prop "ro.config.notification_vol_steps=50"
+add_prop "ro.config.system_vol_steps=50"
+add_prop "ro.config.vc_call_vol_steps=30"
+add_prop "audio.safemedia.bypass=true"
+add_prop "ro.config.safemedia.bypass=true"
+add_prop "persist.vendor.audio.hifi=true"
+add_prop "persist.vendor.audio.hac.enable=1"
+add_prop "persist.vendor.audio.ll_audio=false"
+add_prop "persist.vendor.audio.offload=true"
+add_prop "persist.vendor.audio.spatializer_enabled=true"
+add_prop "persist.vendor.audio.volume.support_dynamic_gain=true"
 
 # -------------------------------------------------------------
-# 13) GAMING BOOST, 0.0x ANIMATION & HEATING CONTROL
+# 14) EXTREME PERFORMANCE & SMOOTHNESS (No Lag)
 # -------------------------------------------------------------
-info "Applying Gaming, 0.0x Animation & Heating Tweaks..."
+info "Applying Gaming & Performance Tweaks..."
+add_prop "persist.sys.window_animation_scale=0.0"
+add_prop "persist.sys.transition_animation_scale=0.0"
+add_prop "persist.sys.animator_duration_scale=0.0"
+add_prop "debug.sf.hw=1"
+add_prop "debug.egl.hw=1"
+add_prop "debug.composition.type=gpu"
+add_prop "debug.sf.enable_hwc_vds=1"
+add_prop "debug.sf.latch_unsignaled=1"
+add_prop "debug.sf.enable_gl_backpressure=1"
+add_prop "ro.hwui.render_ahead=2"
+add_prop "ro.surface_flinger.max_frame_buffer_acquired_buffers=3"
+add_prop "ro.surface_flinger.set_idle_timer_ms=0"
+add_prop "persist.vendor.qti.config.gaming_mode=1"
+add_prop "persist.vendor.qti.config.perf_mode=1"
+add_prop "persist.sys.input.touch_delay=0"
+add_prop "sys.sysctl.extra_free_kbytes=14400"
+add_prop "ro.zram.size=2147483648"
+add_prop "ro.lmk.use_minfree_levels=true"
+add_prop "ro.lmk.swap_free_low_percentage=20"
 
-cat << 'EOF' >> "$DEVICE_DIR/system.prop"
-# --- 0.0x Instant Animation (Fatafat App Open) ---
-persist.sys.window_animation_scale=0.0
-persist.sys.transition_animation_scale=0.0
-persist.sys.animator_duration_scale=0.0
-
-# --- High FPS & Gaming Boost ---
-debug.sf.hw=1
-debug.egl.hw=1
-debug.composition.type=gpu
-ro.surface_flinger.max_frame_buffer_acquired_buffers=3
-ro.surface_flinger.set_idle_timer_ms=0
-persist.vendor.qti.config.gaming_mode=1
-persist.vendor.qti.config.perf_mode=1
-
-# Disable touch delay during gaming
-persist.sys.input.touch_delay=0
-
-# Free up RAM for games
-sys.sysctl.extra_free_kbytes=14400
-EOF
-
-# --- HEATING CONTROL (Overheat Fix) ---
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" ]; then
     sed -i 's/"cpu": [0-9]*/"cpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
     sed -i 's/"gpu": [0-9]*/"gpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
     sed -i 's/"Battery": [0-9]*/"Battery": 40000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
 fi
 
-ok "Gaming Boost, 0.0x Animation & Heating Control applied!"
-
 # -------------------------------------------------------------
-# 14) SECURITY HARDENING (Anti-Hack & Anti-Malware)
+# 15) SUPER MEGA FIXES (LineageOS & WiFi)
 # -------------------------------------------------------------
-info "Applying Security Hardening..."
-
-cat << 'EOF' >> "$DEVICE_DIR/system.prop"
-# --- Strict Security (Koi Hack na kar paye) ---
-ro.adb.secure=1
-ro.secure=1
-ro.debuggable=0
-service.adb.tcp.port=-1
-persist.adb.tcp.port=-1
-ro.force.encryption=1
-persist.sys.adb.root=0
-ro.sys.unknown_sources=0
-EOF
-
-# Ensure SELinux is strictly Enforcing
-if [ -f "$DEVICE_DIR/BoardConfig.mk" ]; then
-    sed -i 's/SELINUX_ENFORCING := false/SELINUX_ENFORCING := true/g' "$DEVICE_DIR/BoardConfig.mk" 2>/dev/null || true
-    sed -i 's/SELINUX_ENFORCING := permissive/SELINUX_ENFORCING := true/g' "$DEVICE_DIR/BoardConfig.mk" 2>/dev/null || true
-    if ! grep -q "SELINUX_ENFORCING := true" "$DEVICE_DIR/BoardConfig.mk"; then
-        echo "SELINUX_ENFORCING := true" >> "$DEVICE_DIR/BoardConfig.mk"
-    fi
-fi
-
-ok "Security Hardening applied! System is now Protected."
-
-# -------------------------------------------------------------
-# 15) SUPER MEGA FIX: 34 Bugs from Deep Log Analysis
-# -------------------------------------------------------------
-info "Applying Super Mega Fixes based on Deep Log Analysis..."
-
-# --- FIX 1: LINEAGE PLATFORM RESOURCES MISSING (BUG-08) ---
-if ! grep -q "org.lineageos.platform-res" "$DEVICE_DIR/device.mk"; then
-    echo "PRODUCT_PACKAGES += org.lineageos.platform-res" >> "$DEVICE_DIR/device.mk"
-fi
-
-# --- FIX 2: CAMERA CRASH & FLASH DRIVER FAIL (BUG-01, BUG-07) ---
-if ! grep -q "PRODUCT_PACKAGES_REMOVE += MiuiCamera" "$DEVICE_DIR/device.mk"; then
-    echo "PRODUCT_PACKAGES_REMOVE += MiuiCamera" >> "$DEVICE_DIR/device.mk"
-    echo "PRODUCT_PACKAGES_REMOVE += miuicamera" >> "$DEVICE_DIR/device.mk"
-fi
-echo "persist.vendor.camera.flash.pmic=0" >> "$DEVICE_DIR/system.prop"
-echo "ro.vendor.camera.flash.gpio=0" >> "$DEVICE_DIR/system.prop"
-
-# --- FIX 3: WIFI ROAMING & SUSPEND FAILURE (BUG-02, BUG-03, BUG-13) ---
-echo "ro.unique_wifi_mac=false" >> "$DEVICE_DIR/system.prop"
-echo "persist.vendor.wifi.mac_randomization=0" >> "$DEVICE_DIR/system.prop"
-echo "config_wifi_background_scan=false" >> "$DEVICE_DIR/system.prop"
-
-# --- FIX 4: SEVERE LMK KILLS (BUG-04) ---
-echo "ro.zram.size=2147483648" >> "$DEVICE_DIR/system.prop"
-echo "ro.lmk.use_minfree_levels=true" >> "$DEVICE_DIR/system.prop"
-echo "ro.lmk.swap_free_low_percentage=20" >> "$DEVICE_DIR/system.prop"
-
-# --- FIX 5: FINGERPRINT LIFECYCLE ERRORS (BUG-05) ---
-cat << 'EOF' > "$DEVICE_DIR/sepolicy/vendor/fingerprint_fix.te"
-allow hal_fingerprint_default self:process setcurrent;
-allow hal_fingerprint_default vendor_data_file:dir search;
-allow hal_fingerprint_default vendor_data_file:file { read write open getattr };
-EOF
-
-# --- FIX 6: SELINUX DENIALS (BUG-10) ---
-cat << 'EOF' > "$DEVICE_DIR/sepolicy/vendor/misc_fix.te"
-allow untrusted_app default_android_service:service_manager find;
-allow untrusted_app_34 default_android_service:service_manager find;
-allow isolated_app default_android_service:service_manager find;
-EOF
-
-# --- FIX 7: BUILD FINGERPRINT MISMATCH (BUG-19) ---
-echo "ro.bootimage.build.fingerprint=Xiaomi/alioth/alioth:13/TKQ1.221114.001/V816.0.5.0.TKHINXM:user/release-keys" >> "$DEVICE_DIR/system.prop"
-
-ok "Super Mega Fixes applied! All 34 Bugs targeted."
+info "Applying Super Mega Fixes..."
+add_mk "PRODUCT_PACKAGES += org.lineageos.platform-res"
+add_mk "PRODUCT_PACKAGES_REMOVE += MiuiCamera"
+add_mk "PRODUCT_PACKAGES_REMOVE += miuicamera"
+add_prop "persist.vendor.camera.flash.pmic=0"
+add_prop "ro.vendor.camera.flash.gpio=0"
+add_prop "ro.unique_wifi_mac=false"
+add_prop "persist.vendor.wifi.mac_randomization=0"
+add_prop "config_wifi_background_scan=false"
 
 # -------------------------------------------------------------
 # 16) HARD-FAIL safety check
@@ -450,5 +339,5 @@ if grep -rq 'name: "libjni_latinimegoogle"' vendor/gapps --include="Android.bp" 
     return 1 2>/dev/null || exit 1
 fi
 
-ok "All vendorsetup checks passed."
+ok "All vendorsetup checks passed. System is Fully Secured & Fast."
 echo "============================================================"
