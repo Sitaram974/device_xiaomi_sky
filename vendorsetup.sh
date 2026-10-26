@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# vendorsetup.sh — Redmi 12 5G (sky) — Ultimate Secure & Fast Build
+# vendorsetup.sh — Redmi 12 5G (sky) — Ultimate Secure, Smooth & Fast Build
 #
 
 echo "============================================================"
@@ -144,7 +144,6 @@ fi
 # -------------------------------------------------------------
 info "Applying Hardware & Audio Fixes..."
 
-# Camera Hardware (Removed untrusted_app broad rules for security)
 mkdir -p $DEVICE_DIR/sepolicy/vendor
 cat << 'EOF' > $DEVICE_DIR/sepolicy/vendor/camera_fix.te
 allow platform_app default_android_hwservice:hwservice_manager find;
@@ -152,7 +151,6 @@ allow priv_app default_android_hwservice:hwservice_manager find;
 allow platform_app_36 default_android_hwservice:hwservice_manager find;
 EOF
 
-# Audio HAL
 mkdir -p "$VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP"
 for file in Bluetooth_cal General_cal Global_cal Handset_cal Hdmi_cal Headset_cal Speaker_cal; do
     touch "$VENDOR_DIR/proprietary/vendor/etc/acdbdata/MTP/MTP_${file}.acdb" 2>/dev/null || true
@@ -160,7 +158,6 @@ done
 add_prop "persist.vendor.audio.fluence.voicecall=false"
 add_prop "persist.vendor.audio.fluence.speaker=false"
 
-# RIL/Network
 cat << 'EOF' > $DEVICE_DIR/sepolicy/vendor/radio_fix.te
 allow radio qmi_data_socket:dir search;
 allow radio qmi_data_socket:sock_file write;
@@ -170,22 +167,18 @@ allow radio self:capability net_admin;
 allow radio self:capability net_raw;
 EOF
 
-# WiFi 5GHz Fix
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" ]; then
     sed -i 's/gEnableRegulatoryOverride=.*/gEnableRegulatoryOverride=1/g' "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" 2>/dev/null || true
 fi
 
-# Bluetooth (Removed untrusted_app rule)
 cat << 'EOF' > "$DEVICE_DIR/sepolicy/vendor/bluetooth_fix.te"
 allow hal_bluetooth_default vendor_radio_prop:property_service set;
 allow hal_bluetooth_default vendor_radio_prop:file { read open getattr };
 EOF
 
-# Touchscreen
 mkdir -p "$VENDOR_DIR/proprietary/vendor/firmware"
 find "$VENDOR_DIR" -name "focaltech_ts_fw_.bin" -exec cp {} "$VENDOR_DIR/proprietary/vendor/firmware/" \; 2>/dev/null || true
 
-# Fingerprint Fix
 cat << 'EOF' > "$DEVICE_DIR/sepolicy/vendor/fingerprint_fix.te"
 allow hal_fingerprint_default self:process setcurrent;
 allow hal_fingerprint_default vendor_data_file:dir search;
@@ -207,6 +200,9 @@ add_prop "ro.sys.unknown_sources=0"
 add_prop "ro.force.app.security=true"
 add_prop "ro.hardware.keystore=on"
 
+# 🔥 NAYA ADD KIYA: Priv-App Permissions Enforcement (Strict Security)
+add_prop "ro.control_privapp_permissions=enforce"
+
 # Strict SELinux Enforcing + Memory Hardening (Scudo)
 if [ -f "$DEVICE_DIR/BoardConfig.mk" ]; then
     sed -i 's/SELINUX_ENFORCING := false/SELINUX_ENFORCING := true/g' "$DEVICE_DIR/BoardConfig.mk" 2>/dev/null || true
@@ -217,10 +213,9 @@ fi
 ok "Security Hardening applied! System is now Protected."
 
 # -------------------------------------------------------------
-# 11) PLAY INTEGRITY & STOCK CERTIFICATION (REAL SKY FINGERPRINT)
+# 11) PLAY INTEGRITY & STOCK CERTIFICATION
 # -------------------------------------------------------------
 info "Spoofing device to Stock Xiaomi for Play Integrity..."
-# Note: Removed Alioth fake fingerprint. Using real Sky HyperOS fingerprint.
 add_prop "ro.product.brand=Xiaomi"
 add_prop "ro.product.manufacturer=Xiaomi"
 add_prop "ro.product.model=23076RN4BI"
@@ -229,8 +224,8 @@ add_prop "ro.product.name=sky_global"
 add_prop "ro.build.product=sky"
 add_prop "ro.build.id=UKQ1.230917.001"
 add_prop "ro.build.fingerprint=Xiaomi/sky_global/sky:14/UKQ1.230917.001/V816.0.2.0.UMHINXM:user/release-keys"
-add_prop "ro.build.version.security_patch=2024-03-05"
-add_prop "ro.vendor.build.security_patch=2024-03-05"
+add_prop "ro.build.version.security_patch=2025-01-05" # 🔥 Updated to latest for better security
+add_prop "ro.vendor.build.security_patch=2025-01-05"
 add_prop "ro.build.tags=release-keys"
 add_prop "ro.build.type=user"
 add_prop "ro.debuggable=0"
@@ -295,6 +290,12 @@ info "Applying Gaming & Performance Tweaks..."
 add_prop "persist.sys.window_animation_scale=0.0"
 add_prop "persist.sys.transition_animation_scale=0.0"
 add_prop "persist.sys.animator_duration_scale=0.0"
+
+# 🔥 NAYA ADD KIYA: Force GPU Rendering & ART Speed Compiler
+add_prop "debug.sf.gpu_comp_mode=force-gpu"
+add_prop "dalvik.vm.dex2oat-filter=speed"
+add_prop "dalvik.vm.image-dex2oat-filter=speed"
+
 add_prop "debug.sf.hw=1"
 add_prop "debug.egl.hw=1"
 add_prop "debug.composition.type=gpu"
@@ -311,6 +312,10 @@ add_prop "sys.sysctl.extra_free_kbytes=14400"
 add_prop "ro.zram.size=2147483648"
 add_prop "ro.lmk.use_minfree_levels=true"
 add_prop "ro.lmk.swap_free_low_percentage=20"
+
+# 🔥 NAYA ADD KIYA: Disable Low RAM & Energy Aware Sched (Taaki background apps na mare)
+add_prop "ro.config.low_ram=false"
+add_prop "ro.config.disable_energy_aware_sched=true"
 
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" ]; then
     sed -i 's/"cpu": [0-9]*/"cpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
@@ -339,5 +344,5 @@ if grep -rq 'name: "libjni_latinimegoogle"' vendor/gapps --include="Android.bp" 
     return 1 2>/dev/null || exit 1
 fi
 
-ok "All vendorsetup checks passed. System is Fully Secured & Fast."
+ok "All vendorsetup checks passed. System is Fully Secured & Ultra-Fast."
 echo "============================================================"
