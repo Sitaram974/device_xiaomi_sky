@@ -740,3 +740,27 @@ PRODUCT_SYSTEM_PROPERTIES += \
     persist.vendor.gps.debug_level=3 \
     persist.vendor.gps.nmea=1 \
     ro.gps.agps_provider=1
+
+# =========================================================
+# 🛡️ ANTI-THEFT TRACKING & ULTRA-STRONG CONNECTION
+# =========================================================
+
+# 1. Anti-Theft Tracking (Find My Device Force ON)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.com.google.locationfeatures=1 \
+    ro.com.google.networklocation=1 \
+    ro.allow.mock.location=1 \
+    persist.sys.gps.power=1 \
+    ro.kernel.android.checkjni=0 \
+    persist.sys.background_apps_limit=100
+
+# 2. Ultra-Strong Calling & Network (Modem Keep-Alive)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.radio.calls.on.ims=1 \
+    persist.radio.jbims=1 \
+    persist.radio.vrte_logic=1 \
+    persist.vendor.radio.data_con_rprt=1 \
+    persist.vendor.radio.apm_sim_not_pwdn=1 \
+    persist.vendor.radio.add_power_save=0 \
+    persist.radio.calls.on.ims=1 \
+    persist.dbg.ims_volte_avail_ovr=1
