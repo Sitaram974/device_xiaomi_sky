@@ -202,9 +202,6 @@ BOARD_USES_QCOM_HARDWARE := true
 
 # Enable sparse on all filesystem images
 
-# Power
-$(call soong_config_set,power_libperfmgr,mode_extension_lib,//$(DEVICE_PATH):libperfmgr-ext-sky)
-
 # Properties
 TARGET_ODM_PROP += $(DEVICE_PATH)/configs/properties/odm.prop
 TARGET_PRODUCT_PROP += $(DEVICE_PATH)/configs/properties/product.prop
@@ -235,9 +232,6 @@ BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/vendor
 # Sepolicy - XiaomiParts
 SYSTEM_EXT_PRIVATE_SEPOLICY_DIRS += \
     $(DEVICE_PATH)/sepolicy/private/xiaomi/devicesettings
-
-#SYSTEM_EXT_PUBLIC_SEPOLICY_DIRS += \
-#    $(DEVICE_PATH)/sepolicy/public/xiaomi/devicesettings
 
 # Vendor Boot
 PRODUCT_COPY_FILES += \
