@@ -1,0 +1,6 @@
+allow radio qmi_data_socket:dir search;
+allow radio qmi_data_socket:sock_file write;
+allow radio qmi_data_socket:unix_stream_socket connectto;
+allow radio vendor_qmi_data_socket:sock_file write;
+allow radio self:capability net_admin;
+allow radio self:capability net_raw;
