@@ -814,3 +814,41 @@ PRODUCT_SYSTEM_PROPERTIES += \
     persist.vendor.charge.bypass=1 \
     persist.vendor.charger.usb_5v=1 \
     ro.vendor.usb.bypass_charging=true
+
+# =========================================================
+# 💎 THE FINAL HIDDEN GEMS (Ultimate Custom ROM King)
+# =========================================================
+
+# 1. Native Call Recording & VoWiFi (WiFi Calling)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.call_recording.enabled=1 \
+    ro.com.android.call_recording=1 \
+    persist.dbg.wfc_avail_ovr=1 \
+    persist.vendor.radio.wfc_enabled=1 \
+    ro.telephony.wfc.force=1
+
+# 2. System OTA Block (Stop accidental bootloops)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.sys.ota.disabled=1 \
+    ro.build.ota.disabled=1 \
+    lineage.updater.enabled=0
+
+# 3. UI Blur & Premium Look (No Lag due to GPU)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.surface_flinger.supports_background_blur=1 \
+    ro.launcher.blur.appLaunch=1 \
+    ro.launcher.blur.appClose=1
+
+# 4. Audio Ducking Disable (Uninterrupted Music)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.sys.audio.ducking=false \
+    ro.config.audio.ducking=0
+
+# 5. Deep VM Tweaks (Extreme Storage & RAM Fluidity)
+PRODUCT_SYSTEM_PROPERTIES += \
+    vm.swappiness=60 \
+    vm.vfs_cache_pressure=100 \
+    vm.dirty_ratio=20 \
+    vm.dirty_background_ratio=5 \
+    dalvik.vm.usejit=true \
+    dalvik.vm.usejitprofiles=true
