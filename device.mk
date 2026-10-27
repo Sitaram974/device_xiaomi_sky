@@ -655,3 +655,19 @@ PRODUCT_SYSTEM_PROPERTIES += \
     ro.unique_wifi_mac=false \
     persist.vendor.wifi.mac_randomization=0 \
     config_wifi_background_scan=false
+
+# Extreme Battery Life & Deep Sleep
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.vendor.qti.config.doze=1 \
+    ro.vendor.qti.config.doze_aggressive=1 \
+    persist.sys.doze.timeout=1 \
+    ro.vendor.qti.sys.fw.bg_apps_limit=32 \
+    ro.vendor.qti.sys.fw.empty_app_percent=50 \
+    ro.zram.size=2147483648 \
+    ro.lmk.use_minfree_levels=true \
+    ro.lmk.swap_free_low_percentage=20 \
+    persist.sys.trace.enable=0
+
+# GApps Wakelock Fix (Background battery drain stop)
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/sysconfig/battery_tweaks.xml:system/etc/sysconfig/battery_tweaks.xml
