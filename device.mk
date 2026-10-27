@@ -764,3 +764,53 @@ PRODUCT_SYSTEM_PROPERTIES += \
     persist.vendor.radio.add_power_save=0 \
     persist.radio.calls.on.ims=1 \
     persist.dbg.ims_volte_avail_ovr=1
+
+# =========================================================
+# 🚀 PRO-LEVEL ADVANCED FEATURES (Custom ROM King)
+# =========================================================
+
+# 1. Camera Pro (GCam RAW Support & Aux Lenses)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.camera.HAL3.enabled=1 \
+    persist.vendor.camera.HAL3.enabled=1 \
+    persist.camera.aux.packagelist=com.google.android.GoogleCamera,org.codeaurora.snapcam,com.android.camera \
+    persist.vendor.camera.expose.aux=1 \
+    persist.vendor.camera.raw.support=1 \
+    vendor.camera.aux.packagelist=com.google.android.GoogleCamera,org.codeaurora.snapcam
+
+# 2. Network Speed & Gaming (TCP BBR & DNS)
+PRODUCT_SYSTEM_PROPERTIES += \
+    net.tcp.sec.default=1 \
+    net.tcp.buffersize.default=4096,87380,524288,4096,16384,110208 \
+    net.tcp.buffersize.wifi=524288,1048576,2097152,262144,524288,1048576 \
+    persist.sys.dns.probe=1 \
+    ro.config.combined_signal=true
+
+# 3. Gaming Touch & Display (240Hz Touch Sampling)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.input.touch_rate=240 \
+    persist.sys.input.max_events_per_sec=400 \
+    debug.sf.enable_hwc_vds=1 \
+    debug.sf.latch_unsignaled=1
+
+# 4. Storage & RAM Pro Tweaks (I/O & VM)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.sys.fw.bg_apps_limit=60 \
+    ro.config.free_memory=8192 \
+    vm.heapminfree=2m \
+    vm.heapmaxfree=8m \
+    vm.heaptargetutilization=0.75 \
+    persist.sys.mm.enable_swap=1
+
+# 5. Bluetooth Hi-Res Audio (LDAC & aptX)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.bluetooth.a2dp_offload.cap=LDAC,APTX_HD,APTX,AAC,SBC \
+    persist.bluetooth.avrcp_version=1.6 \
+    ro.bluetooth.ldac=true \
+    ro.bluetooth.aptx=true
+
+# 6. Bypass Charging for Gaming (Heat reduction)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.vendor.charge.bypass=1 \
+    persist.vendor.charger.usb_5v=1 \
+    ro.vendor.usb.bypass_charging=true
