@@ -926,3 +926,23 @@ PRODUCT_SYSTEM_PROPERTIES += \
     ro.zygote.preload=1 \
     persist.sys.zygote_preload=1 \
     persist.device_config.runtime_native_boot.enable_apex_image=true
+
+# =========================================================
+# 🏁 THE ABSOLUTE FINAL TWEAKS (Micro-Details)
+# =========================================================
+
+# 1. OTG & USB Speed Boost (Pendrive/External HDD Fast Data Transfer)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.sys.usb.ffs.max_read=2097152 \
+    persist.sys.usb.ffs.max_write=2097152
+
+# 2. Wide Color Gamut (Screen Colors ko aur vibrant karega)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.sys.sf.wide_color_mode=1 \
+    ro.surface_flinger.has_wide_color_display=true
+
+# 3. Kill Background Logs (CPU load kam karega)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.logd.size=64K \
+    logd.statistics=0 \
+    persist.sys.logd.statistics=0
