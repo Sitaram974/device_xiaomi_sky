@@ -718,3 +718,25 @@ PRODUCT_SYSTEM_PROPERTIES += \
     ro.config.max_starting_bg=8 \
     ro.sys.fw.bg_apps_limit=60 \
     ro.config.free_memory=4096
+
+# =========================================================
+# 📡 5G NETWORK & GPS TURBO BOOST
+# =========================================================
+
+# 5G Preferred Mode (Fastest Network)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.telephony.default_network=33 \
+    persist.vendor.radio.5g_mode_pref=1 \
+    persist.radio.nr.mode=1 \
+    persist.vendor.radio.enable_5g_sa=1 \
+    persist.vendor.radio.enable_5g_nsa=1 \
+    persist.radio.allow_5g_roaming=1
+
+# GPS High-Accuracy & Instant Lock (AGPS)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.vendor.gps.lpp_profile=2 \
+    persist.vendor.gps.supl_host=supl.google.com \
+    persist.vendor.gps.supl_port=7276 \
+    persist.vendor.gps.debug_level=3 \
+    persist.vendor.gps.nmea=1 \
+    ro.gps.agps_provider=1
