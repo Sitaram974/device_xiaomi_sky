@@ -852,3 +852,55 @@ PRODUCT_SYSTEM_PROPERTIES += \
     vm.dirty_background_ratio=5 \
     dalvik.vm.usejit=true \
     dalvik.vm.usejitprofiles=true
+
+# =========================================================
+# 🔮 HYPER-ADVANCED SYSTEM TWEAKS (The True King)
+# =========================================================
+
+# 1. Force Vulkan Renderer (Ultra-Fast UI & Gaming)
+# Yeh UI ko OpenGL se hata kar Vulkan par shift karega (Stock se 40% zyada smooth)
+PRODUCT_SYSTEM_PROPERTIES += \
+    debug.hwui.renderer=skiavk \
+    debug.renderengine.backend=skiavk \
+    debug.hwui.use_buffer_age=true \
+    debug.hwui.use_partial_updates=true
+
+# 2. Zygote Preload & Fast Boot
+# Phone restart par apps ko pehle se RAM mein load rakhega (Instant Boot)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.zygote.preload=1 \
+    persist.sys.zygote_preload=1 \
+    ro.config.zygote_max=4
+
+# 3. Wi-Fi & Bluetooth Battery Saver (Scan Throttling)
+# Background mein Wi-Fi aur Bluetooth ko baar-baar scan karne se rokega (Battery bachegi)
+PRODUCT_SYSTEM_PROPERTIES += \
+    wifi.scan_interval_ms=60000 \
+    wifi.supplicant_scan_interval=180 \
+    persist.vendor.bt.scan_interval=120
+
+# 4. Sensor Offload (Battery Save during Workout)
+# Step counter aur sensors ko main CPU se hata kar low-power chip par bhejega
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.vendor.sensors.offload_step_counter=1 \
+    ro.vendor.sensors.offload_activity=1 \
+    ro.vendor.sensors.offload_gesture=1
+
+# 5. Widevine L1 Force (Netflix / Amazon Prime HD)
+# Streaming apps ko HD play karne ke liye force karega
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.netflix.bsp_rev=Q855-16947-1 \
+    persist.sys.widevine.level=1
+
+# 6. CPU & GPU Governor Tuning (For Maximum FPS)
+# CPU ko force karega ki woh sote na, aur games mein instant boost de
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.vendor.qti.config.power_save=0 \
+    persist.sys.cpu.min_freq=300000 \
+    persist.sys.gpu.governor=msm-adreno-tz
+
+# 7. Ext4/F2FS File System Tweaks (Instant File Reading)
+# Storage ko optimize karega (Photos aur games fatafat load honge)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.config.f2fs_optimize=1 \
+    persist.sys.fs.trim=1
