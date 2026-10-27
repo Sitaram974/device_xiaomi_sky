@@ -626,9 +626,6 @@ PRODUCT_SYSTEM_PROPERTIES += \
     persist.vendor.qti.config.perf_mode=1 \
     persist.sys.input.touch_delay=0 \
     sys.sysctl.extra_free_kbytes=14400 \
-    ro.zram.size=2147483648 \
-    ro.lmk.use_minfree_levels=true \
-    ro.lmk.swap_free_low_percentage=20 \
     ro.config.low_ram=false \
     ro.config.disable_energy_aware_sched=true
 
