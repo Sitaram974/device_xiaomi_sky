@@ -629,6 +629,17 @@ PRODUCT_SYSTEM_PROPERTIES += \
     ro.config.low_ram=false \
     ro.config.disable_energy_aware_sched=true
 
+# 🔥 NAYA ADD KIYA: HWUI Caches (UI Smoothness & Fast App Loading)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.hwui.texture_cache_size=96.0 \
+    ro.hwui.layer_cache_size=48.0 \
+    ro.hwui.path_cache_size=32.0 \
+    ro.hwui.disable_vsync=true
+
+# 🔥 NAYA ADD KIYA: Camera JPEG Quality 100%
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.media.enc.jpeg.quality=100
+
 # Audio & Battery
 PRODUCT_SYSTEM_PROPERTIES += \
     persist.vendor.audio.fluence.voicecall=false \
@@ -688,6 +699,10 @@ PRODUCT_SYSTEM_PROPERTIES += \
     persist.dbg.wfc_avail_ovr=1 \
     ro.telephony.default_network=33 \
     ro.telephony.default_cdma_sub=0
+
+# 🔥 NAYA ADD KIYA: VoWiFi Stability (WiFi Calling Drop Fix)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.vendor.data.iwlan.enable=true
 
 # 3. Google OTA Block & System Protection (Stop Background Updates)
 PRODUCT_SYSTEM_PROPERTIES += \
