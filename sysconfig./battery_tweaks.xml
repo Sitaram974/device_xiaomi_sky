@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <allow-in-power-save package="com.google.android.gms" />
+    <allow-in-power-save package="com.google.android.googlequicksearchbox" />
+    <allow-in-power-save package="com.google.android.apps.wellbeing" />
+</config>
