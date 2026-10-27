@@ -183,3 +183,8 @@ fi
 
 ok "All vendorsetup checks passed. System is Fully Secured & Ultra-Fast."
 echo "============================================================"
+
+# Network DNS & TCP Pro Tweaks
+if [ -f "$VENDOR_DIR/proprietary/vendor/etc/init/init.qcom.rc" ]; then
+    grep -q "setprop net.tcp.sec.default 1" "$VENDOR_DIR/proprietary/vendor/etc/init/init.qcom.rc" || echo "setprop net.tcp.sec.default 1" >> "$VENDOR_DIR/proprietary/vendor/etc/init/init.qcom.rc"
+fi
