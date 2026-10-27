@@ -946,3 +946,30 @@ PRODUCT_SYSTEM_PROPERTIES += \
     ro.logd.size=64K \
     logd.statistics=0 \
     persist.sys.logd.statistics=0
+
+# =========================================================
+# 🛡️ KERNEL & SYSTEM LEVEL SECURITY HARDENING (The Fortress)
+# =========================================================
+
+# 1. Kernel & Memory Protection (Block Rootkits & Memory Hacking)
+PRODUCT_SYSTEM_PROPERTIES += \
+    kernel.kptr_restrict=2 \
+    kernel.dmesg_restrict=1 \
+    kernel.panic_on_oops=1 \
+    net.ipv4.conf.all.rp_filter=1 \
+    net.ipv4.tcp_syncookies=1
+
+# 2. Block Google System Background Updates (Save RAM/CPU)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.config.enable_mainline_updates=false \
+    ro.config.disable_play_system_update=1
+
+# 3. Strict Sandboxing (Apps ko aapas mein baat karne se rokna)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.sys.app_sandbox_enforce=1 \
+    ro.config.enforce_ipc_sandbox=1
+
+# 4. USB Port Lockdown (Chori hone par data theft se bachao)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.sys.usb.secure_lockdown=1 \
+    ro.usb.port.mode=charging_only
