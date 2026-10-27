@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# vendorsetup.sh — Redmi 12 5G (sky) — Permanent Fixes & Signing
+# vendorsetup.sh — Redmi 12 5G (sky) — Clean & Permanent
 #
 
 echo "============================================================"
@@ -14,9 +14,7 @@ ok()   { echo "[✓] $*"; }
 DEVICE_DIR="device/xiaomi/sky"
 VENDOR_DIR="vendor/xiaomi/sky"
 
-# -------------------------------------------------------------
 # 1) Fix libjni_latinimegoogle.so packaging conflict
-# -------------------------------------------------------------
 info "Fixing libjni_latinimegoogle.so conflict..."
 python3 - <<'PYEOF'
 import pathlib, re, sys
@@ -62,30 +60,21 @@ if ROOT.exists():
         except Exception: pass
 PYEOF
 
-# -------------------------------------------------------------
-# 2) FIX AOSP DISPLAYSERVICE DUPLICATE ERROR
-# -------------------------------------------------------------
+# 2) Fix AOSP Displayservice
 info "Fixing AOSP displayservice duplicate module error..."
 rm -f frameworks/native/services/displayservice/Android.bp
-ok "Displayservice duplicate removed."
 
-# -------------------------------------------------------------
-# 3) Remove duplicate hardware/xiaomi/dolby
-# -------------------------------------------------------------
+# 3) Remove duplicate Dolby
 info "Removing hardware/xiaomi/dolby..."
 rm -rf hardware/xiaomi/dolby || true
 
-# -------------------------------------------------------------
 # 4) Ensure vendor/bcr is cloned
-# -------------------------------------------------------------
 if [[ ! -d "vendor/bcr" ]]; then
     info "Cloning vendor/bcr..."
     git clone --depth=1 https://github.com/anonytry/android_vendor_bcr.git vendor/bcr || true
 fi
 
-# -------------------------------------------------------------
 # 5) DOWNLOAD CUSTOM SIGNING KEYS
-# -------------------------------------------------------------
 PRIVATE_REPO="Sitaram974/my-rom-keys"
 if [ -n "$CUSTOM_GITHUB_PAT" ]; then
     info "Downloading custom signing keys..."
@@ -106,33 +95,24 @@ else
     warn "CUSTOM_GITHUB_PAT not set. Skipping custom keys."
 fi
 
-# -------------------------------------------------------------
 # 6) Merge split prebuilt firmware files
-# -------------------------------------------------------------
 if [[ -f "device/xiaomi/sky/prebuilts/tools/merge.sh" ]]; then
     info "Merging split prebuilt firmware files..."
     bash device/xiaomi/sky/prebuilts/tools/merge.sh device/xiaomi/sky/prebuilts/firmware || true
 fi
 
-# -------------------------------------------------------------
-# 7) PERMANENT FIX: Thermal & WiFi (Kyunki vendor blobs sync se overwrite hote hain)
-# -------------------------------------------------------------
+# 7) PERMANENT FIX: Thermal & WiFi (Blobs sync se overwrite hote hain)
 info "Applying Thermal & WiFi Tuning..."
-# WiFi 5GHz Fix
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" ]; then
     sed -i 's/gEnableRegulatoryOverride=.*/gEnableRegulatoryOverride=1/g' "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" 2>/dev/null || true
 fi
-
-# Thermal Limits Unlock (CPU/GPU 65C)
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" ]; then
     sed -i 's/"cpu": [0-9]*/"cpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
     sed -i 's/"gpu": [0-9]*/"gpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
     sed -i 's/"Battery": [0-9]*/"Battery": 40000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
 fi
 
-# -------------------------------------------------------------
-# 8) HARD-FAIL safety check
-# -------------------------------------------------------------
+# HARD-FAIL safety check
 if grep -rq 'name: "libjni_latinimegoogle"' vendor/gapps --include="Android.bp" 2>/dev/null; then
     echo "FATAL: libjni_latinimegoogle still present in vendor/gapps!"
     return 1 2>/dev/null || exit 1
