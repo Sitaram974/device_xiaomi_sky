@@ -565,3 +565,93 @@ $(call inherit-product-if-exists, vendor/gapps/arm64/arm64-vendor.mk)
 $(call inherit-product-if-exists, vendor/extras/prebuilts.mk)
 $(call inherit-product-if-exists, vendor/bcr/bcr.mk)
 $(call inherit-product-if-exists, vendor/signify/keys/keys.mk)
+
+# =========================================================
+# 🔥 PERMANENT SECURITY, PERFORMANCE & SPOOFING FIXES
+# =========================================================
+
+# Security Hardening
+PRODUCT_PACKAGES_REMOVE += su
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.debuggable=0 \
+    ro.secure=1 \
+    ro.adb.secure=1 \
+    persist.sys.usb.config=mtp \
+    persist.adb.notify=0 \
+    ro.force.encryption=1 \
+    ro.crypto.state=encrypted \
+    ro.crypto.type=file \
+    ro.sys.unknown_sources=0 \
+    ro.force.app.security=true \
+    ro.hardware.keystore=on \
+    ro.control_privapp_permissions=enforce
+
+# Play Integrity / Stock Spoofing (Fixes banking apps & certification)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.product.brand=Xiaomi \
+    ro.product.manufacturer=Xiaomi \
+    ro.product.model=23076RN4BI \
+    ro.product.device=sky \
+    ro.product.name=sky_global \
+    ro.build.product=sky \
+    ro.build.id=UKQ1.230917.001 \
+    ro.build.fingerprint=Xiaomi/sky_global/sky:14/UKQ1.230917.001/V816.0.2.0.UMHINXM:user/release-keys \
+    ro.build.version.security_patch=2025-01-05 \
+    ro.vendor.build.security_patch=2025-01-05 \
+    ro.build.tags=release-keys \
+    ro.build.type=user \
+    ro.boot.verifiedbootstate=green \
+    ro.boot.flash.locked=1 \
+    ro.boot.vbmeta.device_state=locked \
+    ro.boot.veritymode=enforcing
+
+# Extreme Performance & Smoothness
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.sys.window_animation_scale=0.0 \
+    persist.sys.transition_animation_scale=0.0 \
+    persist.sys.animator_duration_scale=0.0 \
+    debug.sf.gpu_comp_mode=force-gpu \
+    dalvik.vm.dex2oat-filter=speed \
+    dalvik.vm.image-dex2oat-filter=speed \
+    debug.sf.hw=1 \
+    debug.egl.hw=1 \
+    debug.composition.type=gpu \
+    debug.sf.enable_hwc_vds=1 \
+    debug.sf.latch_unsignaled=1 \
+    debug.sf.enable_gl_backpressure=1 \
+    ro.hwui.render_ahead=2 \
+    ro.surface_flinger.max_frame_buffer_acquired_buffers=3 \
+    ro.surface_flinger.set_idle_timer_ms=0 \
+    persist.vendor.qti.config.gaming_mode=1 \
+    persist.vendor.qti.config.perf_mode=1 \
+    persist.sys.input.touch_delay=0 \
+    sys.sysctl.extra_free_kbytes=14400 \
+    ro.zram.size=2147483648 \
+    ro.lmk.use_minfree_levels=true \
+    ro.lmk.swap_free_low_percentage=20 \
+    ro.config.low_ram=false \
+    ro.config.disable_energy_aware_sched=true
+
+# Audio & Battery
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.vendor.audio.fluence.voicecall=false \
+    persist.vendor.audio.fluence.speaker=false \
+    ro.config.media_vol_steps=100 \
+    ro.config.alarm_vol_steps=100 \
+    persist.vendor.charge.speedup=1 \
+    ro.quick.charge=1 \
+    persist.vendor.charger.fast=1
+
+# Bug Fixes
+PRODUCT_PACKAGES += \
+    org.lineageos.platform-res \
+    LatinIME
+PRODUCT_PACKAGES_REMOVE += \
+    android.hardware.tv.tuner-V3-ndk \
+    android.hardware.tv.tuner-V3-ndk_platform
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.vendor.camera.flash.pmic=0 \
+    ro.vendor.camera.flash.gpio=0 \
+    ro.unique_wifi_mac=false \
+    persist.vendor.wifi.mac_randomization=0 \
+    config_wifi_background_scan=false
