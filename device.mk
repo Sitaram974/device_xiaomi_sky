@@ -668,3 +668,53 @@ PRODUCT_SYSTEM_PROPERTIES += \
 # GApps Wakelock Fix (Background battery drain stop)
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/sysconfig/battery_tweaks.xml:system/etc/sysconfig/battery_tweaks.xml
+
+# =========================================================
+# 👑 ROM KING PRO-TIER TWEAKS (Ultimate Smoothness & Stability)
+# =========================================================
+
+# 1. Display & UI Smoothness (Force 120Hz & Prevent Frame Drops)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.sys.sf.native_mode=1 \
+    debug.sf.enable_phase_offsets=1 \
+    debug.sf.use_phase_offsets_as_durations=1 \
+    ro.surface_flinger.set_touch_timer_ms=200 \
+    ro.surface_flinger.use_content_detection_for_refresh_rate=true
+
+# 2. Network & VoLTE (Jio/Airtel 5G Stability)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.dbg.volte_avail_ovr=1 \
+    persist.dbg.vt_avail_ovr=1 \
+    persist.dbg.wfc_avail_ovr=1 \
+    ro.telephony.default_network=33 \
+    ro.telephony.default_cdma_sub=0 \
+    persist.vendor.qti.sys.fw.bg_apps_limit=60
+
+# 3. Google OTA Block & System Protection (Stop Background Updates)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.com.google.clientidbase=android-google \
+    ro.com.google.gmsversion=14_202401 \
+    ro.sys.fw.dex2oat_max_execution_time=0 \
+    persist.sys.disable_rescue=true \
+    ro.config.enable_rescueparty=false
+
+# 4. Camera Auxiliary Lenses (Unlock All Lenses)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.vendor.camera.privapp.list=com.android.camera,com.miui.camera \
+    ro.vendor.camera.aux.packagelist=com.android.camera,com.miui.camera,org.codeaurora.snapcam \
+    persist.vendor.camera.expose.aux=1
+
+# 5. Audio Magic (Deep Buffer & High-Res)
+PRODUCT_SYSTEM_PROPERTIES += \
+    audio.offload.disable=0 \
+    audio.offload.buffer.size.kb=32 \
+    audio.offload.pcm.16bit.enable=true \
+    audio.offload.pcm.24bit.enable=true \
+    persist.vendor.audio.ras.enabled=false \
+    vendor.audio.feature.dynamic_ecns.enable=true
+
+# 6. Extreme Memory (Keep apps alive forever)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.config.max_starting_bg=8 \
+    ro.sys.fw.bg_apps_limit=60 \
+    ro.config.free_memory=4096
