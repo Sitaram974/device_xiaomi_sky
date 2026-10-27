@@ -431,13 +431,13 @@ PRODUCT_COPY_FILES += \
 PRODUCT_SHIPPING_API_LEVEL := 33
 
 # Soong namespaces
+# 🔥 FIXED: Removed hardware/google/pixel/power-libperfmgr to fix build error
 PRODUCT_SOONG_NAMESPACES += \
     $(DEVICE_PATH) \
     hardware/lineage/interfaces/power-libperfmgr \
     hardware/google \
     hardware/google/interfaces \
     hardware/google/pixel/pixelstats \
-    hardware/google/pixel/power-libperfmgr \
     hardware/qcom-caf/common/libqti-perfd-client \
     hardware/xiaomi
 
