@@ -658,7 +658,7 @@ PRODUCT_SYSTEM_PROPERTIES += \
     ro.vendor.qti.config.doze=1 \
     ro.vendor.qti.config.doze_aggressive=1 \
     persist.sys.doze.timeout=1 \
-    ro.vendor.qti.sys.fw.bg_apps_limit=32 \
+    ro.vendor.qti.sys.fw.bg_apps_limit=60 \
     ro.vendor.qti.sys.fw.empty_app_percent=50 \
     ro.zram.size=2147483648 \
     ro.lmk.use_minfree_levels=true \
@@ -687,8 +687,7 @@ PRODUCT_SYSTEM_PROPERTIES += \
     persist.dbg.vt_avail_ovr=1 \
     persist.dbg.wfc_avail_ovr=1 \
     ro.telephony.default_network=33 \
-    ro.telephony.default_cdma_sub=0 \
-    persist.vendor.qti.sys.fw.bg_apps_limit=60
+    ro.telephony.default_cdma_sub=0
 
 # 3. Google OTA Block & System Protection (Stop Background Updates)
 PRODUCT_SYSTEM_PROPERTIES += \
@@ -717,7 +716,7 @@ PRODUCT_SYSTEM_PROPERTIES += \
 PRODUCT_SYSTEM_PROPERTIES += \
     ro.config.max_starting_bg=8 \
     ro.sys.fw.bg_apps_limit=60 \
-    ro.config.free_memory=4096
+    ro.config.free_memory=8192
 
 # =========================================================
 # 📡 5G NETWORK & GPS TURBO BOOST
@@ -725,7 +724,6 @@ PRODUCT_SYSTEM_PROPERTIES += \
 
 # 5G Preferred Mode (Fastest Network)
 PRODUCT_SYSTEM_PROPERTIES += \
-    ro.telephony.default_network=33 \
     persist.vendor.radio.5g_mode_pref=1 \
     persist.radio.nr.mode=1 \
     persist.vendor.radio.enable_5g_sa=1 \
@@ -762,7 +760,6 @@ PRODUCT_SYSTEM_PROPERTIES += \
     persist.vendor.radio.data_con_rprt=1 \
     persist.vendor.radio.apm_sim_not_pwdn=1 \
     persist.vendor.radio.add_power_save=0 \
-    persist.radio.calls.on.ims=1 \
     persist.dbg.ims_volte_avail_ovr=1
 
 # =========================================================
@@ -789,9 +786,7 @@ PRODUCT_SYSTEM_PROPERTIES += \
 # 3. Gaming Touch & Display (240Hz Touch Sampling)
 PRODUCT_SYSTEM_PROPERTIES += \
     ro.input.touch_rate=240 \
-    persist.sys.input.max_events_per_sec=400 \
-    debug.sf.enable_hwc_vds=1 \
-    debug.sf.latch_unsignaled=1
+    persist.sys.input.max_events_per_sec=400
 
 # 4. Storage & RAM Pro Tweaks (I/O & VM)
 PRODUCT_SYSTEM_PROPERTIES += \
@@ -857,50 +852,36 @@ PRODUCT_SYSTEM_PROPERTIES += \
 # 🔮 HYPER-ADVANCED SYSTEM TWEAKS (The True King)
 # =========================================================
 
-# 1. Force Vulkan Renderer (Ultra-Fast UI & Gaming)
-# Yeh UI ko OpenGL se hata kar Vulkan par shift karega (Stock se 40% zyada smooth)
-PRODUCT_SYSTEM_PROPERTIES += \
-    debug.hwui.renderer=skiavk \
-    debug.renderengine.backend=skiavk \
-    debug.hwui.use_buffer_age=true \
-    debug.hwui.use_partial_updates=true
-
-# 2. Zygote Preload & Fast Boot
-# Phone restart par apps ko pehle se RAM mein load rakhega (Instant Boot)
+# 1. Zygote Preload & Fast Boot (Instant Boot)
 PRODUCT_SYSTEM_PROPERTIES += \
     ro.zygote.preload=1 \
     persist.sys.zygote_preload=1 \
     ro.config.zygote_max=4
 
-# 3. Wi-Fi & Bluetooth Battery Saver (Scan Throttling)
-# Background mein Wi-Fi aur Bluetooth ko baar-baar scan karne se rokega (Battery bachegi)
+# 2. Wi-Fi & Bluetooth Battery Saver (Scan Throttling)
 PRODUCT_SYSTEM_PROPERTIES += \
     wifi.scan_interval_ms=60000 \
     wifi.supplicant_scan_interval=180 \
     persist.vendor.bt.scan_interval=120
 
-# 4. Sensor Offload (Battery Save during Workout)
-# Step counter aur sensors ko main CPU se hata kar low-power chip par bhejega
+# 3. Sensor Offload (Battery Save during Workout)
 PRODUCT_SYSTEM_PROPERTIES += \
     ro.vendor.sensors.offload_step_counter=1 \
     ro.vendor.sensors.offload_activity=1 \
     ro.vendor.sensors.offload_gesture=1
 
-# 5. Widevine L1 Force (Netflix / Amazon Prime HD)
-# Streaming apps ko HD play karne ke liye force karega
+# 4. Widevine L1 Force (Netflix / Amazon Prime HD)
 PRODUCT_SYSTEM_PROPERTIES += \
     ro.netflix.bsp_rev=Q855-16947-1 \
     persist.sys.widevine.level=1
 
-# 6. CPU & GPU Governor Tuning (For Maximum FPS)
-# CPU ko force karega ki woh sote na, aur games mein instant boost de
+# 5. CPU & GPU Governor Tuning (For Maximum FPS)
 PRODUCT_SYSTEM_PROPERTIES += \
     ro.vendor.qti.config.power_save=0 \
     persist.sys.cpu.min_freq=300000 \
     persist.sys.gpu.governor=msm-adreno-tz
 
-# 7. Ext4/F2FS File System Tweaks (Instant File Reading)
-# Storage ko optimize karega (Photos aur games fatafat load honge)
+# 6. Ext4/F2FS File System Tweaks (Instant File Reading)
 PRODUCT_SYSTEM_PROPERTIES += \
     ro.config.f2fs_optimize=1 \
     persist.sys.fs.trim=1
@@ -917,14 +898,10 @@ PRODUCT_SYSTEM_PROPERTIES += \
 
 # 2. F2FS & File System (Storage Speed)
 PRODUCT_SYSTEM_PROPERTIES += \
-    ro.config.f2fs_optimize=1 \
-    persist.sys.fs.trim=1 \
     ro.vold.secure_dirs=1
 
 # 3. RAM & Zygote (Instant App Loading)
 PRODUCT_SYSTEM_PROPERTIES += \
-    ro.zygote.preload=1 \
-    persist.sys.zygote_preload=1 \
     persist.device_config.runtime_native_boot.enable_apex_image=true
 
 # =========================================================
@@ -955,7 +932,6 @@ PRODUCT_SYSTEM_PROPERTIES += \
 PRODUCT_SYSTEM_PROPERTIES += \
     kernel.kptr_restrict=2 \
     kernel.dmesg_restrict=1 \
-    kernel.panic_on_oops=1 \
     net.ipv4.conf.all.rp_filter=1 \
     net.ipv4.tcp_syncookies=1
 
@@ -969,7 +945,6 @@ PRODUCT_SYSTEM_PROPERTIES += \
     persist.sys.app_sandbox_enforce=1 \
     ro.config.enforce_ipc_sandbox=1
 
-# 4. USB Port Lockdown (Chori hone par data theft se bachao)
+# 4. USB Port Security (MTP enabled for rescue)
 PRODUCT_SYSTEM_PROPERTIES += \
-    persist.sys.usb.secure_lockdown=1 \
-    ro.usb.port.mode=charging_only
+    persist.sys.usb.secure_lockdown=1
