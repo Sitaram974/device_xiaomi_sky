@@ -1,0 +1,2 @@
+allow hal_bluetooth_default vendor_radio_prop:property_service set;
+allow hal_bluetooth_default vendor_radio_prop:file { read open getattr };
