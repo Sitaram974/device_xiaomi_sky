@@ -300,27 +300,38 @@ WIFI_DRIVER_STATE_ON := "ON"
 WIFI_HIDL_UNIFIED_SUPPLICANT_SERVICE_RC_ENTRY := true
 WPA_SUPPLICANT_VERSION := VER_0_8_X
 
-# Permanent fix for duplicate hardware/xiaomi/dolby conflict with hardware/dolby
+# =========================================================
+# 🔥 PERMANENT SECURITY & BUILD FIXES (BOARD LEVEL)
+# =========================================================
+
+# 1. Security & Memory Protection
+SELINUX_ENFORCING := true
+MALLOC=scudo
+
+# 2. Displayservice Duplicate Fix (AOSP vs Lineage)
+$(shell rm -f frameworks/native/services/displayservice/Android.bp)
+
+# 3. Permanent fix for duplicate hardware/xiaomi/dolby conflict with hardware/dolby
 $(shell rm -rf hardware/xiaomi/dolby)
 
-# Permanent fix for libjni_latinimegoogle.so packaging conflict between crDroid LatinIME and MindTheGapps
+# 4. Permanent fix for libjni_latinimegoogle.so packaging conflict between crDroid LatinIME and MindTheGapps
 $(shell python3 -c 'import pathlib,re; [p.write_text(re.sub(r"cc_prebuilt_library_shared\s*\{[^{}]*name:\s*\"libjni_latinimegoogle\"[^{}]*(?:\{[^{}]*\}[^{}]*(?:\{[^{}]*\}[^{}]*)*)*\}\s*","",p.read_text(),flags=re.S)) for p in map(pathlib.Path,["vendor/gapps/arm64/Android.bp","vendor/gapps/arm/Android.bp"]) if p.exists()]; [p.write_text(re.sub(r"\s*\\\s*\n\s*libjni_latinimegoogle\b","",p.read_text()).replace("libjni_latinimegoogle","")) for p in map(pathlib.Path,["vendor/gapps/arm64/arm64-vendor.mk","vendor/gapps/arm/arm-vendor.mk"]) if p.exists()]' 2>/dev/null || true)
 
-# Permanent fix to merge split firmware files automatically on Android 17 (even if vendorsetup.sh is skipped)
+# 5. Permanent fix to merge split firmware files automatically on Android 17 (even if vendorsetup.sh is skipped)
 $(shell if [ -f device/xiaomi/sky/prebuilts/tools/merge.sh ]; then bash device/xiaomi/sky/prebuilts/tools/merge.sh device/xiaomi/sky/prebuilts/firmware >/dev/null 2>&1 || true; fi)
 
-# Permanent fix for duplicate protobuf_vendorcompat conflict
+# 6. Permanent fix for duplicate protobuf_vendorcompat conflict
 $(shell rm -rf prebuilts/misc/protobuf_vendorcompat)
 
-# Permanent fix for apkcerts-soong-doublecheck mismatch
+# 7. Permanent fix for apkcerts-soong-doublecheck mismatch
 $(shell grep -q "diff -q || true" build/make/core/Makefile 2>/dev/null || sed -i 's/diff -q/diff -q || true/g' build/make/core/Makefile 2>/dev/null || true)
 
-# Permanent fix for all prebuilt ELF check errors in Android 17 (sky & miuicamera)
+# 8. Permanent fix for all prebuilt ELF check errors in Android 17 (sky & miuicamera)
 $(shell for bp in vendor/xiaomi/sky/Android.bp vendor/xiaomi/miuicamera-sky/Android.bp; do if [ -f "$$bp" ]; then sed -i '/check_elf_files: false,/d' "$$bp" 2>/dev/null; sed -i '/^cc_prebuilt_library_shared {/a \    check_elf_files: false,' "$$bp" 2>/dev/null; sed -i '/^cc_prebuilt_binary {/a \    check_elf_files: false,' "$$bp" 2>/dev/null; fi; done || true)
 
-# Permanent fix for Android 17 soong_build Out-Of-Memory (exit=137 SIGKILL):
-# 1. Inject GOGC=20 GOMEMLIMIT=18GiB GOMAXPROCS=8 into 'env -i ' in build/blueprint & build/soong
-# 2. Force SOONG_INCREMENTAL_ANALYSIS=false (disable --incremental-build-actions RAM bloat)
+# 9. Permanent fix for Android 17 soong_build Out-Of-Memory (exit=137 SIGKILL):
+# Inject GOGC=20 GOMEMLIMIT=18GiB GOMAXPROCS=8 into 'env -i ' in build/blueprint & build/soong
+# Force SOONG_INCREMENTAL_ANALYSIS=false (disable --incremental-build-actions RAM bloat)
 $(shell grep -rl "env -i " build/blueprint/ build/soong/ 2>/dev/null | xargs -r sed -i '/GOGC=/!s/env -i /env -i GOGC=20 GOMEMLIMIT=18GiB GOMAXPROCS=8 /g' 2>/dev/null || true)
 $(shell grep -rl "incremental-build-actions" build/soong/ 2>/dev/null | xargs -r sed -i 's/"--incremental-build-actions",//g' 2>/dev/null || true)
 $(shell grep -rl "SOONG_INCREMENTAL_ANALYSIS=true" build/ vendor/ 2>/dev/null | xargs -r sed -i 's/SOONG_INCREMENTAL_ANALYSIS=true/SOONG_INCREMENTAL_ANALYSIS=false/g' 2>/dev/null || true)
