@@ -904,3 +904,25 @@ PRODUCT_SYSTEM_PROPERTIES += \
 PRODUCT_SYSTEM_PROPERTIES += \
     ro.config.f2fs_optimize=1 \
     persist.sys.fs.trim=1
+
+# =========================================================
+# 🏁 THE FINAL TOUCH (Micro-Tuning for Perfect ROM)
+# =========================================================
+
+# 1. Touch & UI Fluid Response
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.input.resampling=1 \
+    ro.input.touch.prediction=1 \
+    persist.sys.ui.hw=1
+
+# 2. F2FS & File System (Storage Speed)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.config.f2fs_optimize=1 \
+    persist.sys.fs.trim=1 \
+    ro.vold.secure_dirs=1
+
+# 3. RAM & Zygote (Instant App Loading)
+PRODUCT_SYSTEM_PROPERTIES += \
+    ro.zygote.preload=1 \
+    persist.sys.zygote_preload=1 \
+    persist.device_config.runtime_native_boot.enable_apex_image=true
