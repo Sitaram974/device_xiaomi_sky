@@ -963,3 +963,28 @@ PRODUCT_SYSTEM_PROPERTIES += \
 # 4. USB Port Security (MTP enabled for rescue)
 PRODUCT_SYSTEM_PROPERTIES += \
     persist.sys.usb.secure_lockdown=1
+
+# =========================================================
+# ⚡ ELITE KERNEL & ART OPTIMIZATIONS (No Compromise)
+# =========================================================
+
+# 1. ART Garbage Collector Tuning (Heavy Games ke liye RAM free rakhega)
+PRODUCT_SYSTEM_PROPERTIES += \
+    dalvik.vm.heapgrowthlimit=256m \
+    dalvik.vm.heapsize=512m \
+    dalvik.vm.heapstartsize=8m \
+    dalvik.vm.heaptargetutilization=0.75
+
+# 2. Sustained Performance Mode (Gaming ke dauran thermal throttle ko control karega)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.sys.sustained_performance=1
+
+# 3. Wi-Fi Channel Bonding (WiFi Speed Double)
+PRODUCT_SYSTEM_PROPERTIES += \
+    wifi.interface=wlan0 \
+    wifi.supplicant_scan_interval=180 \
+    net.tcp.buffersize.wifi=524288,1048576,2097152,262144,524288,1048576
+
+# 4. Zygote Multi-threading (Fast Boot)
+PRODUCT_SYSTEM_PROPERTIES += \
+    persist.sys.zygote_max=8
