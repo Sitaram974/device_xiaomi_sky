@@ -20,7 +20,7 @@ VENDOR_DIR="vendor/xiaomi/sky"
 info "Fixing power-libperfmgr namespace conflict..."
 if [ -f "hardware/lineage/interfaces/power-libperfmgr/Android.bp" ]; then
     # Is line ko delete kar do jo build fail kar rahi hai
-    sed -i '/"hardware\/google\/pixel\/power-libperfmgr",/d' hardware/lineage/interfaces/power-libperfmgr/Android.bp || true
+    sed -i '/hardware\/google\/pixel\/power-libperfmgr/d' hardware/lineage/interfaces/power-libperfmgr/Android.bp || true
     ok "Namespace conflict fixed!"
 fi
 
@@ -128,11 +128,9 @@ fi
 # 8) DYNAMIC VENDOR PATCHES (WiFi, Thermal)
 # -------------------------------------------------------------
 info "Applying Dynamic Vendor Patches (WiFi, Thermal)..."
-# WiFi 5GHz Fix
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" ]; then
     sed -i 's/gEnableRegulatoryOverride=.*/gEnableRegulatoryOverride=1/g' "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" 2>/dev/null || true
 fi
-# Thermal Limits Unlock (CPU/GPU 65C, Battery 40C - Safe & Fast)
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" ]; then
     sed -i 's/"cpu": [0-9]*/"cpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
     sed -i 's/"gpu": [0-9]*/"gpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
