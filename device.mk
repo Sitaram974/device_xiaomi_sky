@@ -629,6 +629,15 @@ PRODUCT_SYSTEM_PROPERTIES += \
     ro.config.low_ram=false \
     ro.config.disable_energy_aware_sched=true
 
+# 🔥 VULKAN HWUI ELITE TWEAKS (Added Missing Optimization)
+PRODUCT_SYSTEM_PROPERTIES += \
+    debug.hwui.renderer=skiavk \
+    debug.renderengine.backend=skiavk \
+    debug.hwui.use_buffer_age=true \
+    debug.hwui.use_partial_updates=true \
+    ro.hwui.render_dirty_regions=false \
+    debug.hwui.skia_tracing_enabled=false
+
 # 🔥 NAYA ADD KIYA: HWUI Caches (UI Smoothness & Fast App Loading)
 PRODUCT_SYSTEM_PROPERTIES += \
     ro.hwui.texture_cache_size=96.0 \
@@ -725,7 +734,9 @@ PRODUCT_SYSTEM_PROPERTIES += \
     audio.offload.pcm.16bit.enable=true \
     audio.offload.pcm.24bit.enable=true \
     persist.vendor.audio.ras.enabled=false \
-    vendor.audio.feature.dynamic_ecns.enable=true
+    vendor.audio.feature.dynamic_ecns.enable=true \
+    persist.vendor.audio.hifi=true \
+    persist.vendor.audio.ll_audio=false
 
 # 6. Extreme Memory (Keep apps alive forever)
 PRODUCT_SYSTEM_PROPERTIES += \
@@ -975,17 +986,20 @@ PRODUCT_SYSTEM_PROPERTIES += \
     dalvik.vm.heapstartsize=8m \
     dalvik.vm.heaptargetutilization=0.75
 
-# 2. Sustained Performance Mode (Gaming ke dauran thermal throttle ko control karega)
+# 🔥 2. Multi-threaded Compilation (Fast App Installation)
+PRODUCT_SYSTEM_PROPERTIES += \
+    dalvik.vm.dex2oat-threads=8 \
+    dalvik.vm.image-dex2oat-threads=8
+
+# 3. Sustained Performance Mode (Gaming ke dauran thermal throttle ko control karega)
 PRODUCT_SYSTEM_PROPERTIES += \
     persist.sys.sustained_performance=1
 
-# 3. Wi-Fi Channel Bonding (WiFi Speed Double)
+# 4. Wi-Fi Channel Bonding (WiFi Speed Double)
 PRODUCT_SYSTEM_PROPERTIES += \
-    wifi.interface=wlan0 \
-    wifi.supplicant_scan_interval=180 \
-    net.tcp.buffersize.wifi=524288,1048576,2097152,262144,524288,1048576
+    wifi.interface=wlan0
 
-# 4. Zygote Multi-threading (Fast Boot)
+# 5. Zygote Multi-threading (Fast Boot)
 PRODUCT_SYSTEM_PROPERTIES += \
     persist.sys.zygote_max=8
 
