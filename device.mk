@@ -605,7 +605,7 @@ PRODUCT_SYSTEM_PROPERTIES += \
     ro.boot.vbmeta.device_state=locked \
     ro.boot.veritymode=enforcing
 
-# Extreme Performance & Smoothness
+# Extreme Performance & Smoothness (OpenGL + GPU Force)
 PRODUCT_SYSTEM_PROPERTIES += \
     persist.sys.window_animation_scale=0.0 \
     persist.sys.transition_animation_scale=0.0 \
@@ -630,23 +630,14 @@ PRODUCT_SYSTEM_PROPERTIES += \
     ro.config.disable_energy_aware_sched=true \
     ro.config.disable_hw_accel=false
 
-# 🔥 VULKAN HWUI ELITE TWEAKS (Ultimate UI Speed)
-PRODUCT_SYSTEM_PROPERTIES += \
-    debug.hwui.renderer=skiavk \
-    debug.renderengine.backend=skiavk \
-    debug.hwui.use_buffer_age=true \
-    debug.hwui.use_partial_updates=true \
-    ro.hwui.render_dirty_regions=false \
-    debug.hwui.skia_tracing_enabled=false
-
-# 🔥 NAYA ADD KIYA: HWUI Caches (UI Smoothness & Fast App Loading)
+# 🔥 HWUI Caches (Safe for OpenGL, boosts UI smoothness)
 PRODUCT_SYSTEM_PROPERTIES += \
     ro.hwui.texture_cache_size=96.0 \
     ro.hwui.layer_cache_size=48.0 \
     ro.hwui.path_cache_size=32.0 \
     ro.hwui.disable_vsync=true
 
-# 🔥 NAYA ADD KIYA: Camera JPEG Quality 100%
+# 🔥 Camera JPEG Quality 100%
 PRODUCT_SYSTEM_PROPERTIES += \
     ro.media.enc.jpeg.quality=100
 
@@ -710,7 +701,7 @@ PRODUCT_SYSTEM_PROPERTIES += \
     ro.telephony.default_network=33 \
     ro.telephony.default_cdma_sub=0
 
-# 🔥 NAYA ADD KIYA: VoWiFi Stability (WiFi Calling Drop Fix)
+# 🔥 VoWiFi Stability (WiFi Calling Drop Fix)
 PRODUCT_SYSTEM_PROPERTIES += \
     persist.vendor.data.iwlan.enable=true
 
