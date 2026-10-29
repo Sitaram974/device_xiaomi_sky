@@ -15,11 +15,12 @@ DEVICE_DIR="device/xiaomi/sky"
 VENDOR_DIR="vendor/xiaomi/sky"
 
 # -------------------------------------------------------------
-# 1) 🔥 PERMANENT FIX: Namespace Error
+# 1) 🔥 ROOT FIX: Namespace Error (Replace Line, Don't Delete)
 # -------------------------------------------------------------
 info "Fixing power-libperfmgr namespace conflict..."
 if [ -f "hardware/lineage/interfaces/power-libperfmgr/Android.bp" ]; then
-    sed -i '/hardware\/google\/pixel\/power-libperfmgr/d' hardware/lineage/interfaces/power-libperfmgr/Android.bp || true
+    # Sahee tarika: Galat line ko sahi namespace se replace karna
+    sed -i 's|"hardware/google/pixel/power-libperfmgr",|"hardware/google/pixel",|' hardware/lineage/interfaces/power-libperfmgr/Android.bp || true
     ok "Namespace conflict fixed!"
 fi
 
