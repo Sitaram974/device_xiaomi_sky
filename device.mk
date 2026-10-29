@@ -627,9 +627,10 @@ PRODUCT_SYSTEM_PROPERTIES += \
     persist.sys.input.touch_delay=0 \
     sys.sysctl.extra_free_kbytes=14400 \
     ro.config.low_ram=false \
-    ro.config.disable_energy_aware_sched=true
+    ro.config.disable_energy_aware_sched=true \
+    ro.config.disable_hw_accel=false
 
-# 🔥 VULKAN HWUI ELITE TWEAKS (Added Missing Optimization)
+# 🔥 VULKAN HWUI ELITE TWEAKS (Ultimate UI Speed)
 PRODUCT_SYSTEM_PROPERTIES += \
     debug.hwui.renderer=skiavk \
     debug.renderengine.backend=skiavk \
