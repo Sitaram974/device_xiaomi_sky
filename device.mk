@@ -605,7 +605,7 @@ PRODUCT_SYSTEM_PROPERTIES += \
     ro.boot.vbmeta.device_state=locked \
     ro.boot.veritymode=enforcing
 
-# Extreme Performance & Smoothness (OpenGL + GPU Force)
+# Extreme Performance & Smoothness (OpenGL + GPU Force + Vulkan HWUI)
 PRODUCT_SYSTEM_PROPERTIES += \
     persist.sys.window_animation_scale=0.0 \
     persist.sys.transition_animation_scale=0.0 \
@@ -630,7 +630,18 @@ PRODUCT_SYSTEM_PROPERTIES += \
     ro.config.disable_energy_aware_sched=true \
     ro.config.disable_hw_accel=false
 
-# 🔥 HWUI Caches (Safe for OpenGL, boosts UI smoothness)
+# 🔥 VULKAN HWUI ELITE TWEAKS (Force Vulkan for UI Rendering)
+PRODUCT_SYSTEM_PROPERTIES += \
+    debug.hwui.renderer=skiavk \
+    debug.renderengine.backend=skiavk \
+    debug.hwui.use_buffer_age=true \
+    debug.hwui.use_partial_updates=true \
+    ro.hwui.render_dirty_regions=false \
+    debug.hwui.skia_tracing_enabled=false \
+    debug.vulkan.strict=0 \
+    persist.sys.vulkan.enabled=1
+
+# 🔥 HWUI Caches (Extreme UI smoothness)
 PRODUCT_SYSTEM_PROPERTIES += \
     ro.hwui.texture_cache_size=96.0 \
     ro.hwui.layer_cache_size=48.0 \
