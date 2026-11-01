@@ -23,63 +23,18 @@
 -->
 
 <!--
-"performance-point"
-    Vendor-guaranteed performance advertised to the applications
-        <Limit name="performance-point-widthxheight" value="fps" />
-
-    -For each of the resolutions, the advertised fps is the max supported,
-    with HW-friendly color format and considering video-only.
-    -Performance for any intermediate resolution will be that of the
-    next-higher-advertised-resolution.
-
-    standard sizes: 480p/576p (SD), 720p (HD), 1080p (FHD), 2160p (UHD)
-    standard frame rates: 24, 25, 30, 48+, 50, 60, 100*, 120*, 200*, 240* fps
-        * HD+ only
-        + SD only
-    - All supported standard performance points are listed (unless they are
-    covered by another listed standard performance point)
-    - Non-standard performance points are listed along with all the standard
-    performance points covered by them.
--->
-
-<!--
  Lahaina Non-Secure decoder capabilities
- (MB is defined as 16x16)
  _______________________________________________________
  | Codec       |  W      H      fps     Mbps    MB/s   |
  |_____________|_______________________________________|
- | h264        | 3840   2176    60      100    1958400 |
- |             | 4096   2176    48      100            |
- | hevc        | 3840   2176    60      100    1958400 |
- |             | 4096   2176    48      100            |
- | vp9         | 3840   2176    60      100    1958400 |
- |             | 4096   2176    48      100            |
+ | h264        | 3840   2176    60      120    1958400 |
+ |             | 4096   2176    48      120            |
+ | hevc        | 3840   2176    60      120    1958400 |
+ |             | 4096   2176    48      120            |
+ | vp9         | 3840   2176    60      120    1958400 |
+ |             | 4096   2176    48      120            |
  | mpeg2       | 1920   1088    30       40     244800 |
  |_____________|_______________________________________|
-
- Lahaina Secure decoder capabilities
- (MB is defined as 16x16)
- __________________________________________________
- | Codec    |  W      H      fps    Mbps   MB/s   |
- |__________|_____________________________________|
- | h264     | 3840   2176    60     40    1958400 |
- |          | 4096   2176    48     40            |
- | vp9      | 3840   2176    60     40    1958400 |
- |          | 4096   2176    48     40            |
- | hevc     | 3840   2176    60     40    1958400 |
- |          | 4096   2176    48     40            |
- |__________|_____________________________________|
-
- Lahaina Non-Secure encoder capabilities (Secure not supported)
- (MB is defined as 16x16)
- __________________________________________________
- | Codec    |  W      H      fps   Mbps    MB/s   |
- |__________|_____________________________________|
- | h264     | 3840   2176    60    100    1958400 |
- |          | 4096   2176    48    100            |
- | hevc     | 3840   2176    60    100    1958400 |
- |          | 4096   2176    48    100            |
- |__________|_____________________________________|
 -->
 
 <MediaCodecs>
@@ -100,7 +55,7 @@
             <Limit name="block-size" value="16x16" />
             <Limit name="block-count" range="36-34816" />
             <Limit name="blocks-per-second" range="36-1958400" />
-            <Limit name="bitrate" range="1-100000000" />
+            <Limit name="bitrate" range="1-120000000" /> <!-- Boosted to 120Mbps -->
             <Limit name="frame-rate" range="1-480" />
             <Limit name="concurrent-instances" max="16" />
             <Feature name="adaptive-playback" />
@@ -116,7 +71,7 @@
             <Limit name="block-size" value="16x16" />
             <Limit name="block-count" range="36-34816" />
             <Limit name="blocks-per-second" range="36-1958400" />
-            <Limit name="bitrate" range="1-100000000" />
+            <Limit name="bitrate" range="1-120000000" /> <!-- Boosted to 120Mbps -->
             <Limit name="frame-rate" range="1-480" />
             <Limit name="concurrent-instances" max="16" />
             <Feature name="adaptive-playback" />
@@ -149,7 +104,7 @@
             <Limit name="block-size" value="16x16" />
             <Limit name="block-count" range="36-34816" />
             <Limit name="blocks-per-second" min="36" max="1958400" />
-            <Limit name="bitrate" range="1-100000000" />
+            <Limit name="bitrate" range="1-120000000" /> <!-- Boosted to 120Mbps -->
             <Limit name="frame-rate" range="1-480" />
             <Feature name="adaptive-playback" />
             <Limit name="concurrent-instances" max="16" />
@@ -165,7 +120,7 @@
             <Limit name="block-size" value="16x16" />
             <Limit name="block-count" range="36-34816" />
             <Limit name="blocks-per-second" min="36" max="1958400" />
-            <Limit name="bitrate" range="1-100000000" />
+            <Limit name="bitrate" range="1-120000000" /> <!-- Boosted to 120Mbps -->
             <Limit name="frame-rate" range="1-480" />
             <Feature name="adaptive-playback" />
             <Feature name="low-latency" />
@@ -198,7 +153,7 @@
             <Limit name="block-size" value="16x16" />
             <Limit name="block-count" range="36-34816" />
             <Limit name="blocks-per-second" min="36" max="1958400" />
-            <Limit name="bitrate" range="1-100000000" />
+            <Limit name="bitrate" range="1-120000000" /> <!-- Boosted to 120Mbps -->
             <Limit name="frame-rate" range="1-60" />
             <Feature name="adaptive-playback" />
             <Limit name="concurrent-instances" max="6" />
@@ -246,7 +201,7 @@
             <Limit name="block-size" value="16x16" />
             <Limit name="blocks-per-second" min="64" max="1958400" />
             <Limit name="block-count" range="64-34816" />
-            <Limit name="bitrate" range="1-100000000" />
+            <Limit name="bitrate" range="1-120000000" /> <!-- Boosted to 120Mbps -->
             <Limit name="frame-rate" range="1-480" />
             <Limit name="complexity" range="0-100"  default="100" />
             <Limit name="concurrent-instances" max="16" />
@@ -265,7 +220,7 @@
             <Limit name="block-size" value="16x16" />
             <Limit name="blocks-per-second" min="64" max="1958400" />
             <Limit name="block-count" range="64-34816" />
-            <Limit name="bitrate" range="1-100000000" />
+            <Limit name="bitrate" range="1-120000000" /> <!-- Boosted to 120Mbps -->
             <Limit name="frame-rate" range="1-480" />
             <Limit name="complexity" range="0-100"  default="100" />
             <Limit name="concurrent-instances" max="16" />
@@ -286,7 +241,7 @@
             <Limit name="bitrate" range="1-160000000" />
             <Limit name="frame-rate" range="1-20" />
             <Limit name="concurrent-instances" max="16" />
-            <Limit name="quality" range="0-100" default="80" />
+            <Limit name="quality" range="0-100" default="100" /> <!-- Boosted default quality -->
             <Feature name="bitrate-modes" value="CQ" />
             <Limit name="performance-point-512x512" value="2025" />
         </MediaCodec>
@@ -299,7 +254,7 @@
             <Limit name="bitrate" range="1-160000000" />
             <Limit name="frame-rate" range="1-20" />
             <Limit name="concurrent-instances" max="16" />
-            <Limit name="quality" range="0-100" default="80" />
+            <Limit name="quality" range="0-100" default="100" /> <!-- Boosted default quality -->
             <Feature name="bitrate-modes" value="CQ" />
             <Limit name="performance-point-16384x8192" value="3" />
             <Limit name="performance-point-1920x1080" value="6" />
