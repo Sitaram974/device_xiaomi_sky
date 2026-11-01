@@ -62,6 +62,7 @@ TARGET_BOARD_INFO_FILE := $(DEVICE_PATH)/board-info.txt
 BUILD_BROKEN_DUP_RULES := true
 BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
 BUILD_BROKEN_VENDOR_PROPERTY_NAMESPACE := true
+BUILD_BROKEN_MISSING_REQUIRED_MODULES := true
 
 # Camera
 MALLOC_SVELTE := true
@@ -76,6 +77,8 @@ BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilts/dtbo.img
 
 # Filesystem
 TARGET_FS_CONFIG_GEN := $(DEVICE_PATH)/configs/config.fs
+TARGET_USES_MKE2FS := true
+BOARD_EXT4_SHARE_DUP_BLOCKS := true
 
 # FM
 BOARD_HAVE_QCOM_FM := true
@@ -199,6 +202,7 @@ BOARD_VENDORIMAGE_PARTITION_RESERVED_SIZE := 104857600
 # Platform
 TARGET_BOARD_PLATFORM := parrot
 BOARD_USES_QCOM_HARDWARE := true
+TARGET_USES_QCOM_BSP := true
 
 # Enable sparse on all filesystem images
 
@@ -215,6 +219,8 @@ TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/rootdir/etc/fstab.default
 TARGET_USERIMAGES_USE_F2FS := true
 BOARD_USES_RECOVERY_AS_BOOT := false
 BOARD_EXCLUDE_KERNEL_FROM_RECOVERY_IMAGE := true
+TARGET_RECOVERY_UI_MARGIN_HEIGHT := 120
+TARGET_RECOVERY_UI_MARGIN_WIDTH := 32
 
 # RIL
 ENABLE_VENDOR_RIL_SERVICE := true
@@ -324,8 +330,6 @@ $(shell grep -q "diff -q || true" build/make/core/Makefile 2>/dev/null || sed -i
 $(shell for bp in vendor/xiaomi/sky/Android.bp vendor/xiaomi/miuicamera-sky/Android.bp; do if [ -f "$$bp" ]; then sed -i '/check_elf_files: false,/d' "$$bp" 2>/dev/null; sed -i '/^cc_prebuilt_library_shared {/a \    check_elf_files: false,' "$$bp" 2>/dev/null; sed -i '/^cc_prebuilt_binary {/a \    check_elf_files: false,' "$$bp" 2>/dev/null; fi; done || true)
 
 # 9. Permanent fix for Android 17 soong_build Out-Of-Memory (exit=137 SIGKILL):
-# Inject GOGC=20 GOMEMLIMIT=18GiB GOMAXPROCS=8 into 'env -i ' in build/blueprint & build/soong
-# Force SOONG_INCREMENTAL_ANALYSIS=false (disable --incremental-build-actions RAM bloat)
 $(shell grep -rl "env -i " build/blueprint/ build/soong/ 2>/dev/null | xargs -r sed -i '/GOGC=/!s/env -i /env -i GOGC=20 GOMEMLIMIT=18GiB GOMAXPROCS=8 /g' 2>/dev/null || true)
 $(shell grep -rl "incremental-build-actions" build/soong/ 2>/dev/null | xargs -r sed -i 's/"--incremental-build-actions",//g' 2>/dev/null || true)
 $(shell grep -rl "SOONG_INCREMENTAL_ANALYSIS=true" build/ vendor/ 2>/dev/null | xargs -r sed -i 's/SOONG_INCREMENTAL_ANALYSIS=true/SOONG_INCREMENTAL_ANALYSIS=false/g' 2>/dev/null || true)
