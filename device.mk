@@ -566,6 +566,10 @@ $(call inherit-product-if-exists, vendor/extras/prebuilts.mk)
 $(call inherit-product-if-exists, vendor/bcr/bcr.mk)
 $(call inherit-product-if-exists, vendor/signify/keys/keys.mk)
 
+# Super Advanced Init Scripts (Kernel Tweaks)
+PRODUCT_PACKAGES += \
+    init.sky.tweaks.rc
+
 # =========================================================
 # 🔥 PERMANENT SECURITY, PERFORMANCE & SPOOFING FIXES
 # =========================================================
