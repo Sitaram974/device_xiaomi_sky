@@ -605,7 +605,7 @@ PRODUCT_SYSTEM_PROPERTIES += \
     ro.boot.vbmeta.device_state=locked \
     ro.boot.veritymode=enforcing
 
-# Extreme Performance & Smoothness (OpenGL + GPU Force + Vulkan HWUI)
+# Extreme Performance & Smoothness (Vulkan HWUI + GPU Force)
 PRODUCT_SYSTEM_PROPERTIES += \
     persist.sys.window_animation_scale=0.0 \
     persist.sys.transition_animation_scale=0.0 \
@@ -630,7 +630,7 @@ PRODUCT_SYSTEM_PROPERTIES += \
     ro.config.disable_energy_aware_sched=true \
     ro.config.disable_hw_accel=false
 
-# 🔥 VULKAN HWUI ELITE TWEAKS (Force Vulkan for UI Rendering)
+# 🔥 VULKAN HWUI ELITE TWEAKS
 PRODUCT_SYSTEM_PROPERTIES += \
     debug.hwui.renderer=skiavk \
     debug.renderengine.backend=skiavk \
