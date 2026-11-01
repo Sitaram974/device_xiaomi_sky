@@ -66,28 +66,25 @@ fi
 # -------------------------------------------------------------
 # 5) DYNAMIC VENDOR PATCHES (WiFi, Thermal, GPS)
 # -------------------------------------------------------------
-info "Applying Dynamic Vendor Patches (WiFi, Thermal, GPS)..."
+info "Applying Dynamic Vendor Patches..."
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" ]; then
     sed -i 's/gEnableRegulatoryOverride=.*/gEnableRegulatoryOverride=1/g' "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" 2>/dev/null || true
 fi
-
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" ]; then
     sed -i 's/"cpu": [0-9]*/"cpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
     sed -i 's/"gpu": [0-9]*/"gpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
     sed -i 's/"Battery": [0-9]*/"Battery": 40000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
 fi
-
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/gps.conf" ]; then
-    info "Boosting GPS Performance..."
     sed -i 's/^SUPL_HOST=.*/SUPL_HOST=supl.google.com/' "$VENDOR_DIR/proprietary/vendor/etc/gps.conf" 2>/dev/null || true
     sed -i 's/^SUPL_PORT=.*/SUPL_PORT=7276/' "$VENDOR_DIR/proprietary/vendor/etc/gps.conf" 2>/dev/null || true
     sed -i 's/^NTP_SERVER=.*/NTP_SERVER=time.google.com/' "$VENDOR_DIR/proprietary/vendor/etc/gps.conf" 2>/dev/null || true
     grep -q "LPP_PROFILE=3" "$VENDOR_DIR/proprietary/vendor/etc/gps.conf" || echo "LPP_PROFILE=3" >> "$VENDOR_DIR/proprietary/vendor/etc/gps.conf"
-    ok "GPS Performance Boosted."
 fi
+ok "Dynamic Vendor patches applied."
 
 # -------------------------------------------------------------
-# 6) ENSURE SELINUX RULES EXIST
+# 6) ENSURE SELINUX RULES EXIST (Safety Net)
 # -------------------------------------------------------------
 info "Ensuring SELinux Rules..."
 mkdir -p $DEVICE_DIR/sepolicy/vendor
@@ -96,7 +93,6 @@ allow platform_app default_android_hwservice:hwservice_manager find;
 allow priv_app default_android_hwservice:hwservice_manager find;
 allow platform_app_36 default_android_hwservice:hwservice_manager find;
 EOF
-
 cat << 'EOF' > $DEVICE_DIR/sepolicy/vendor/radio_fix.te
 allow radio qmi_data_socket:dir search;
 allow radio qmi_data_socket:sock_file write;
@@ -105,12 +101,10 @@ allow radio vendor_qmi_data_socket:sock_file write;
 allow radio self:capability net_admin;
 allow radio self:capability net_raw;
 EOF
-
 cat << 'EOF' > "$DEVICE_DIR/sepolicy/vendor/bluetooth_fix.te"
 allow hal_bluetooth_default vendor_radio_prop:property_service set;
 allow hal_bluetooth_default vendor_radio_prop:file { read open getattr };
 EOF
-
 cat << 'EOF' > "$DEVICE_DIR/sepolicy/vendor/fingerprint_fix.te"
 allow hal_fingerprint_default self:process setcurrent;
 allow hal_fingerprint_default vendor_data_file:dir search;
