@@ -19,7 +19,6 @@ VENDOR_DIR="vendor/xiaomi/sky"
 # -------------------------------------------------------------
 info "Fixing power-libperfmgr namespace conflict..."
 if [ -f "hardware/lineage/interfaces/power-libperfmgr/Android.bp" ]; then
-    # Sahee tarika: Galat line ko sahi namespace se replace karna
     sed -i 's|"hardware/google/pixel/power-libperfmgr",|"hardware/google/pixel",|' hardware/lineage/interfaces/power-libperfmgr/Android.bp || true
     ok "Namespace conflict fixed!"
 fi
@@ -29,74 +28,12 @@ fi
 # -------------------------------------------------------------
 info "Fixing libaudiobase undefined module error..."
 if [ -f "$VENDOR_DIR/Android.bp" ]; then
-    # Replace libaudiobase with libaudiohal
     sed -i 's/"libaudiobase"/"libaudiohal"/g' "$VENDOR_DIR/Android.bp" || true
     ok "libaudiobase fixed!"
 fi
 
 # -------------------------------------------------------------
-# 3) Fix libjni_latinimegoogle.so packaging conflict
-# -------------------------------------------------------------
-info "Fixing libjni_latinimegoogle.so conflict..."
-python3 - <<'PYEOF'
-import pathlib, re, sys
-TOKEN = "libjni_latinimegoogle"
-ROOT  = pathlib.Path("vendor/gapps")
-def strip_module_from_bp(bp_path):
-    p = pathlib.Path(bp_path)
-    if not p.exists(): return False
-    lines = p.read_text().split('\n')
-    out, i, removed = [], 0, False
-    while i < len(lines):
-        s = lines[i].lstrip()
-        if s.startswith('cc_prebuilt_library_shared'):
-            start, depth, has_token, j = i, 0, False, i
-            while j < len(lines):
-                depth += lines[j].count('{') - lines[j].count('}')
-                if f'name: "{TOKEN}"' in lines[j]: has_token = True
-                if j > start and depth <= 0: break
-                j += 1
-            if has_token:
-                removed = True; i = j + 1; continue
-        out.append(lines[i]); i += 1
-    if removed: p.write_text('\n'.join(out))
-    return removed
-def strip_token_from_mk(mk_path):
-    p = pathlib.Path(mk_path)
-    if not p.exists(): return False
-    original = p.read_text()
-    if TOKEN not in original: return False
-    esc = re.escape(TOKEN)
-    new = original
-    new = re.sub(r'^[ \t]*' + esc + r'[ \t]*\\?[ \t]*\r?\n', '', new, flags=re.MULTILINE)
-    new = re.sub(r'^[ \t]*' + esc + r'[ \t]*\\?[ \t]*\Z', '', new, flags=re.MULTILINE)
-    new = re.sub(r'[ \t]+' + esc + r'(?=[ \t\\]|\r?$)', '', new, flags=re.MULTILINE)
-    if new == original: return False
-    p.write_text(new); return True
-if ROOT.exists():
-    for bp in sorted(ROOT.rglob("Android.bp")):
-        strip_module_from_bp(str(bp))
-    for mk in sorted(ROOT.rglob("*.mk")):
-        try:
-            if TOKEN in mk.read_text(errors='ignore'): strip_token_from_mk(str(mk))
-        except Exception: pass
-PYEOF
-
-# -------------------------------------------------------------
-# 4) FIX AOSP DISPLAYSERVICE DUPLICATE ERROR
-# -------------------------------------------------------------
-info "Fixing AOSP displayservice duplicate module error..."
-rm -f frameworks/native/services/displayservice/Android.bp
-ok "Displayservice duplicate removed."
-
-# -------------------------------------------------------------
-# 5) Remove duplicate hardware/xiaomi/dolby
-# -------------------------------------------------------------
-info "Removing hardware/xiaomi/dolby..."
-rm -rf hardware/xiaomi/dolby || true
-
-# -------------------------------------------------------------
-# 6) Ensure vendor/bcr is cloned
+# 3) Ensure vendor/bcr is cloned
 # -------------------------------------------------------------
 if [[ ! -d "vendor/bcr" ]]; then
     info "Cloning vendor/bcr..."
@@ -104,7 +41,7 @@ if [[ ! -d "vendor/bcr" ]]; then
 fi
 
 # -------------------------------------------------------------
-# 7) DOWNLOAD CUSTOM SIGNING KEYS
+# 4) DOWNLOAD CUSTOM SIGNING KEYS (Sabse Zaroori)
 # -------------------------------------------------------------
 PRIVATE_REPO="Sitaram974/my-rom-keys"
 if [ -n "$CUSTOM_GITHUB_PAT" ]; then
@@ -127,29 +64,19 @@ else
 fi
 
 # -------------------------------------------------------------
-# 8) Merge split prebuilt firmware files
+# 5) DYNAMIC VENDOR PATCHES (WiFi, Thermal, GPS)
 # -------------------------------------------------------------
-if [[ -f "device/xiaomi/sky/prebuilts/tools/merge.sh" ]]; then
-    info "Merging split prebuilt firmware files..."
-    bash device/xiaomi/sky/prebuilts/tools/merge.sh device/xiaomi/sky/prebuilts/firmware || true
-fi
-
-# -------------------------------------------------------------
-# 9) DYNAMIC VENDOR PATCHES (WiFi, Thermal)
-# -------------------------------------------------------------
-info "Applying Dynamic Vendor Patches (WiFi, Thermal)..."
+info "Applying Dynamic Vendor Patches (WiFi, Thermal, GPS)..."
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" ]; then
     sed -i 's/gEnableRegulatoryOverride=.*/gEnableRegulatoryOverride=1/g' "$VENDOR_DIR/proprietary/vendor/etc/wifi/WCNSS_qcom_cfg.ini" 2>/dev/null || true
 fi
+
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" ]; then
     sed -i 's/"cpu": [0-9]*/"cpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
     sed -i 's/"gpu": [0-9]*/"gpu": 65000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
     sed -i 's/"Battery": [0-9]*/"Battery": 40000/g' "$VENDOR_DIR/proprietary/vendor/etc/thermal-engine.conf" 2>/dev/null || true
 fi
 
-# -------------------------------------------------------------
-# 10) GPS HIGH ACCURACY & FAST LOCK FIX
-# -------------------------------------------------------------
 if [ -f "$VENDOR_DIR/proprietary/vendor/etc/gps.conf" ]; then
     info "Boosting GPS Performance..."
     sed -i 's/^SUPL_HOST=.*/SUPL_HOST=supl.google.com/' "$VENDOR_DIR/proprietary/vendor/etc/gps.conf" 2>/dev/null || true
@@ -160,7 +87,7 @@ if [ -f "$VENDOR_DIR/proprietary/vendor/etc/gps.conf" ]; then
 fi
 
 # -------------------------------------------------------------
-# 11) ENSURE SELINUX RULES EXIST
+# 6) ENSURE SELINUX RULES EXIST
 # -------------------------------------------------------------
 info "Ensuring SELinux Rules..."
 mkdir -p $DEVICE_DIR/sepolicy/vendor
@@ -192,7 +119,7 @@ EOF
 ok "SELinux rules secured."
 
 # -------------------------------------------------------------
-# 12) HARD-FAIL safety check
+# 7) HARD-FAIL safety check
 # -------------------------------------------------------------
 if grep -rq 'name: "libjni_latinimegoogle"' vendor/gapps --include="Android.bp" 2>/dev/null; then
     echo "FATAL: libjni_latinimegoogle still present in vendor/gapps!"
