@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Unlock 5G Toggle in Settings -->
+    <bool name="config_show_5g_toggle">true</bool>
+    
+    <!-- Unlock Advanced Camera Features -->
+    <bool name="config_enable_advanced_camera_features">true</bool>
+    
+    <!-- Hide USB Debugging Notification -->
+    <bool name="config_show_usb_debugging_notification">false</bool>
+    
+    <!-- Enable Fast Charging Animation -->
+    <bool name="config_show_fast_charging_animation">true</bool>
+    
+    <!-- Force High Refresh Rate Options -->
+    <bool name="config_supports_high_refresh_rate">true</bool>
+    
+    <!-- Advanced Bluetooth Codecs -->
+    <bool name="config_bluetooth_ldac_enabled">true</bool>
+    <bool name="config_bluetooth_aptx_hd_enabled">true</bool>
+</resources>
